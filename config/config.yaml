@@ -1,0 +1,26 @@
+# 数据库配置
+db:
+  # 驱动 mysql postgres
+  driver: postgres
+  # 数据库名
+  database: middle_center
+  # postgresql模式名称
+  schema-name: public
+  # 用户名
+  username: postgres
+  # 密码
+  password: 123456
+  # 主机地址
+  host: 127.0.0.1
+  # 端口
+  port: 5432
+  # 连接字符串查询参数
+  query: parseTime=True&loc=Local&timeout=10000ms
+  # 是否打印日志
+  log-mode: false
+  # 编码方式
+  charset: utf8mb4
+  # postgresql 参数
+  time-zone: Asia/Shanghai
+  # postgresql 参数
+  ssl-mode: disable
