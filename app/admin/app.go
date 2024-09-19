@@ -13,22 +13,21 @@ import (
 type SubAppAdmin struct {
 }
 
-func (s SubAppAdmin) Migrate(db *gorm.DB) {
-	_ = db.Migrator().AutoMigrate(
-		&model.ApiModel{},
-		&model.UserModel{},
-		&model.RoleModel{},
-		&model.MenuModel{},
-	)
+func (i *SubAppAdmin) Migrate(db *gorm.DB) {
+	model.Migrate(db)
 }
-func (s SubAppAdmin) RegisterRouter(r *gin.Engine) {
+
+func (i *SubAppAdmin) Seed(db *gorm.DB) {
+
+}
+func (i *SubAppAdmin) RegisterRouter(r *gin.Engine) {
 	router.InitApi(r)
 }
 
-func (s SubAppAdmin) RegisterMenu(manager *owl.MenuManager) {
+func (i *SubAppAdmin) RegisterMenu(manager *owl.MenuManager) {
 	manager.AddMenu(menu...)
 }
 
-func (s SubAppAdmin) RegisterCommand(command *cobra.Command) {
-	command.AddCommand(cmd.Version)
+func (i *SubAppAdmin) RegisterCommand(command *cobra.Command) {
+	command.AddCommand(cmd.Version, cmd.GenMigrate)
 }

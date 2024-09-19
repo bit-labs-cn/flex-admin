@@ -9,7 +9,7 @@ type UserModel struct {
 	gorm.Model
 	Name        string     `json:"name"`
 	Account     string     `json:"account"`
-	Password    string     `gorm:"comment:api路径"       json:"password"`
+	Password    string     `gorm:"comment:api路径" json:"password"`
 	Description *string    `gorm:"comment:api中文描述" json:"description"`
 	Phone       *string    `gorm:"comment:api组" json:"phone"`
 	Email       *string    `gorm:"comment:api组" json:"email"`

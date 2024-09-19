@@ -1,16 +1,28 @@
 package v1
 
 import (
-	"github.com/guoliang1994/gin-flex-admin/app/admin/repository/model"
-	"github.com/guoliang1994/gin-flex-admin/owl"
+	"github.com/gin-gonic/gin"
+	"github.com/guoliang1994/gin-flex-admin/app/admin/service"
 )
 
 type UserHandle struct {
-	owl.Handle[*model.UserModel]
 }
 
 func NewUserHandle() UserHandle {
-	return UserHandle{
-		Handle: owl.NewHandle[*model.UserModel](),
+	return UserHandle{}
+}
+
+func (i *UserHandle) Create(ctx *gin.Context) {
+	req := new(service.CreateUpdateUserRequest)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"msg": err.Error()})
+		return
 	}
+
+	svc := service.NewUserService()
+	err := svc.Create(req)
+	if err != nil {
+		return
+	}
+	ctx.JSON(200, gin.H{"msg": err})
 }

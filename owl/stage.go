@@ -10,6 +10,7 @@ import "github.com/spf13/cobra"
 // SubApp 子应用
 type SubApp interface {
 	Migrate(db *gorm.DB)
+	Seed(db *gorm.DB)
 	RegisterRouter(router *gin.Engine)
 	RegisterMenu(manager *MenuManager)
 	RegisterCommand(command *cobra.Command)

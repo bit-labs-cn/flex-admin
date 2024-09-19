@@ -3,7 +3,7 @@ package structs
 
 import (
 	"fmt"
-	"lego/utils/strutil"
+	strutil "github.com/guoliang1994/gin-flex-admin/owl/utils"
 
 	"reflect"
 )

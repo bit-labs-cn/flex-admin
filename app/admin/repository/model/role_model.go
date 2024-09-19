@@ -6,7 +6,9 @@ import (
 
 type RoleModel struct {
 	gorm.Model
-	Name string `json:"name"`
+	Sort        string `json:"sort"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 func (i *RoleModel) TableName() string {

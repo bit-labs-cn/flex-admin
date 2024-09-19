@@ -33,7 +33,7 @@ func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
 	case Pgsql:
 		dbGetter = NewPgSqlGetter(opt)
 	case Sqlite:
-		// dbGetter = NewSqliteGetter(opt) 有点问题，暂时不支持
+		dbGetter = NewSqliteGetter(opt)
 	default:
 		panic("不支持的数据库类型")
 	}
@@ -41,9 +41,9 @@ func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
-			SlowThreshold: time.Second,   // 慢 SQL 阈值
-			LogLevel:      logger.Silent, // Log level
-			Colorful:      false,         // 禁用彩色打印
+			SlowThreshold: time.Second, // 慢 SQL 阈值
+			LogLevel:      logger.Info, // Log level
+			Colorful:      false,       // 禁用彩色打印
 		},
 	)
 

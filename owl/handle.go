@@ -11,9 +11,9 @@ type Handle[T schema.Tabler] struct {
 	repo *Repository[T]
 }
 
-func NewHandle[T schema.Tabler]() Handle[T] {
+func NewHandle[T schema.Tabler](repo *Repository[T]) Handle[T] {
 	return Handle[T]{
-		repo: NewRepository[T](DB),
+		repo: repo,
 	}
 }
 func (i *Handle[T]) Create(ctx *gin.Context) {
@@ -40,7 +40,14 @@ func (i *Handle[T]) Retrieve(ctx *gin.Context) {
 
 }
 func (i *Handle[T]) Update(ctx *gin.Context) {
+	form := new(T)
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		ctx.JSON(400, gin.H{"msg": err.Error()})
+		return
+	}
 
+	err := i.repo.Update(cast.ToInt64(ctx.Param("id")), *form)
+	ctx.JSON(200, gin.H{"msg": err})
 }
 func (i *Handle[T]) Detail(ctx *gin.Context) {
 
