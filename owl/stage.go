@@ -17,8 +17,8 @@ type SubApp interface {
 }
 
 var (
-	DB *gorm.DB
-	MM *MenuManager
+	DB        *gorm.DB
+	MenuMange *MenuManager
 )
 
 func init() {
@@ -37,12 +37,13 @@ func init() {
 func Run(apps ...SubApp) {
 	router := gin.New()
 	cmd := cobra.Command{Use: "owl"}
-	MM = &MenuManager{}
+	MenuMange = &MenuManager{}
 	for _, app := range apps {
 		app.Migrate(DB)
 		app.RegisterRouter(router)
-		app.RegisterMenu(MM)
+		app.RegisterMenu(MenuMange)
 		app.RegisterCommand(&cmd)
+		app.Seed(DB)
 	}
 	router.Run(":8085")
 	cmd.Execute()

@@ -1,23 +1,31 @@
 package v1
 
 import (
-	"github.com/guoliang1994/gin-flex-admin/app/admin/repository/model"
-	"github.com/guoliang1994/gin-flex-admin/owl"
-	"github.com/guoliang1994/gin-flex-admin/owl/utils/structs"
+	"github.com/gin-gonic/gin"
+	"github.com/guoliang1994/gin-flex-admin/app/admin/service"
 )
 
 type RoleHandle struct {
-	owl.Handle[*model.RoleModel]
 }
 
 func NewRoleHandle() RoleHandle {
-	repo := owl.NewRepository[*model.RoleModel](owl.DB).UniqueCheckFn(func(value *model.RoleModel) map[string]interface{} {
-		m := structs.Map(value, structs.Underline)
-		return map[string]interface{}{
-			"name": m["Name"],
-		}
-	})
-	return RoleHandle{
-		Handle: owl.NewHandle[*model.RoleModel](repo),
-	}
+	return RoleHandle{}
+}
+
+func (i *RoleHandle) Retrieve(ctx *gin.Context) {
+	svc := service.NewRoleService()
+	x := svc.Retrieve(service.RetrieveUserReq{})
+	ctx.JSON(200, gin.H{"success": true, "msg": "ok", "data": gin.H{"list": x}, "pageSize": 2, "currentPage": 1, "total": 100})
+}
+
+func (i *RoleHandle) MenuIds(ctx *gin.Context) {
+	svc := service.NewRoleService()
+	x := svc.Retrieve(service.RetrieveUserReq{})
+	ctx.JSON(200, gin.H{"success": true, "msg": "ok", "data": gin.H{"list": x}, "pageSize": 2, "currentPage": 1, "total": 100})
+}
+
+func (i *RoleHandle) AssignMenu(ctx *gin.Context) {
+	svc := service.NewRoleService()
+	x := svc.Retrieve(service.RetrieveUserReq{})
+	ctx.JSON(200, gin.H{"success": true, "msg": "ok", "data": gin.H{"list": x}, "pageSize": 2, "currentPage": 1, "total": 100})
 }

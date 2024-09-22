@@ -2,11 +2,10 @@ package model
 
 import (
 	"github.com/guoliang1994/gin-flex-admin/owl"
-	"gorm.io/gorm"
 )
 
-type ApiModel struct {
-	gorm.Model
+type ModelApi struct {
+	ModelBase
 	Name        string          `json:"name"`
 	Code        string          `json:"code"`
 	Path        string          `gorm:"comment:api路径" json:"path"`
@@ -17,6 +16,6 @@ type ApiModel struct {
 	AccessLevel owl.AccessLevel `json:"accessLevel"`
 }
 
-func (i *ApiModel) TableName() string {
+func (i *ModelApi) TableName() string {
 	return "admin_api"
 }

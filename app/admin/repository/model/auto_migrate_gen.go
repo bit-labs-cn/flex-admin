@@ -6,14 +6,24 @@ import "gorm.io/gorm"
 func Migrate(db *gorm.DB) {
 	_ = db.Migrator().AutoMigrate(
 
-		&ApiModel{},
+		&ModelDictionary{},
 
-		&MenuModel{},
+		&ModelDictionaryDetail{},
 
-		&RoleModel{},
+		&ModelApi{},
 
-		&UserModel{},
+		&ModelMenuButton{},
 
-		&UserRoleModel{},
+		&ModelMenu{},
+
+		&ModelRole{},
+
+		&ModelRoleMenu{},
+
+		&ModelUser{},
+
+		&ModelUserMenu{},
+
+		&ModelUserRole{},
 	)
 }

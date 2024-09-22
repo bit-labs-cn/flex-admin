@@ -10,8 +10,8 @@ import (
 
 type UserServiceInterface interface {
 	Create(req *CreateUserRequest) error
-	Register(req model.UserModel) error
-	exists(id uint, value model.UserModel) bool
+	Register(req model.ModelUser) error
+	exists(id uint, value model.ModelUser) bool
 }
 
 // CreateUserRequest 创建用户，同时绑定角色
@@ -44,11 +44,11 @@ type LoginReq struct {
 }
 
 type UserResp struct {
-	model.UserModel
+	model.ModelUser
 	Permissions []string          `json:"permissions"`
-	Roles       []model.RoleModel `json:"roles"`
-	Menus       []model.MenuModel `json:"menus"`
-	Btn         []model.ApiModel  `json:"btn"`
+	Roles       []model.ModelRole `json:"roles"`
+	Menus       []model.ModelMenu `json:"menus"`
+	Btn         []model.ModelApi  `json:"btn"`
 }
 
 func (i *UserService) Login(req *LoginReq) (user *UserResp, err error) {
@@ -75,8 +75,10 @@ type RetrieveUserReq struct {
 	Keyword  string `json:"keyword"`
 }
 
-func (i *UserService) Retrieve(req RetrieveUserReq) {
-
+func (i *UserService) Retrieve(req RetrieveUserReq) []model.ModelUser {
+	var users []model.ModelUser
+	i.db.Find(&users)
+	return users
 }
 
 type AssignPermissionReq struct {
@@ -97,21 +99,21 @@ type AssignRolesReq struct {
 func (i *UserService) AssignRoles(req AssignRolesReq) {
 	i.RevokeRole(req.UserId)
 	for _, id := range req.RoleIds {
-		i.db.Create(model.UserRoleModel{UserId: req.UserId, RoleId: id})
+		i.db.Create(model.ModelUserRole{UserId: req.UserId, RoleId: id})
 	}
 }
 func (i *UserService) RevokeRole(userId uint) {
-	i.db.Model(model.UserRoleModel{}).Where("user_id", userId).Delete(model.UserRoleModel{UserId: userId})
+	i.db.Model(model.ModelUserRole{}).Where("user_id", userId).Delete(model.ModelUserRole{UserId: userId})
 }
 
 var ErrUserExists = errors.New("用户已存在")
 
 func (i *UserService) Create(req *CreateUserRequest) error {
-	if i.exists(0, model.UserModel{Account: req.Account}) {
+	if i.exists(0, model.ModelUser{Account: req.Account}) {
 		return ErrUserExists
 	}
 
-	var user model.UserModel
+	var user model.ModelUser
 	err := copier.Copy(&user, req)
 	if err != nil {
 		return err
@@ -131,8 +133,8 @@ func (i *UserService) Create(req *CreateUserRequest) error {
 }
 
 // Register 注册用户
-func (i *UserService) Register(req model.UserModel) error {
-	var user model.UserModel
+func (i *UserService) Register(req model.ModelUser) error {
+	var user model.ModelUser
 	err := copier.Copy(&user, req)
 	if err != nil {
 		return err
@@ -143,12 +145,12 @@ func (i *UserService) Register(req model.UserModel) error {
 
 // Update 更新用户
 func (i *UserService) Update(req *UpdateUserRequest) error {
-	if i.exists(req.Id, model.UserModel{Account: req.Account}) {
+	if i.exists(req.Id, model.ModelUser{Account: req.Account}) {
 		return ErrUserExists
 	}
 
 	return i.db.Transaction(func(tx *gorm.DB) error {
-		var user model.UserModel
+		var user model.ModelUser
 		err := copier.Copy(&user, req)
 		if err != nil {
 			return err
@@ -157,11 +159,11 @@ func (i *UserService) Update(req *UpdateUserRequest) error {
 	})
 }
 
-func (i *UserService) exists(id uint, value model.UserModel) bool {
+func (i *UserService) exists(id uint, value model.ModelUser) bool {
 	if id > 0 {
-		i.db.Where("id != ?", id).Where(value).Find(&model.UserModel{})
+		i.db.Where("id != ?", id).Where(value).Find(&model.ModelUser{})
 	} else {
-		i.db.Where(value).Find(&model.UserModel{})
+		i.db.Where(value).Find(&model.ModelUser{})
 	}
 	return true
 }
