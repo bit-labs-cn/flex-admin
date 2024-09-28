@@ -7,7 +7,13 @@ import (
 	"gorm.io/gorm"
 )
 
+var _ owl.SubApp = (*SubAppCodeGen)(nil)
+
 type SubAppCodeGen struct {
+}
+
+func (s SubAppCodeGen) Name() string {
+	return "code_gen"
 }
 
 func (s SubAppCodeGen) Migrate(db *gorm.DB) {

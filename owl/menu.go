@@ -1,27 +1,34 @@
 package owl
 
-import "github.com/jinzhu/copier"
+import (
+	"github.com/guoliang1994/gin-flex-admin/owl/utils"
+	"github.com/jinzhu/copier"
+)
+
+type MenuType string
 
 const (
-	MenuTypeMenu = "菜单"
-	MenuTypeBtn  = "按钮"
+	MenuTypeDir  MenuType = "目录"
+	MenuTypeMenu MenuType = "菜单"
+	MenuTypeBtn  MenuType = "按钮"
 )
 
 type Meta struct {
-	Title string `json:"title"` // 菜单标题
-	Icon  string `json:"icon"`  // 菜单图标
+	Title    string `json:"title"`    // 菜单标题
+	Icon     string `json:"icon"`     // 菜单图标
+	ShowLink bool   `json:"showLink"` // 是否显示菜单
 }
 
 type Menu struct {
-	Path       string   `json:"path"`                  // 前端路由地址
-	Name       string   `json:"name"`                  // 前端路由名称，组件名称
-	ParentName string   `json:"parentName"`            // 父级菜单名称
-	Ancestors  string   `gorm:"comment:祖先;" json:"id"` // 祖先菜单，逗号分割，唯一键
-	Rank       int      `json:"rank,omitempty"`        // 菜单排序
-	Meta       Meta     `json:"meta"`                  // 菜单 meta 信息，用于前端显示
-	MenuType   string   `json:"menuType"`              // 菜单类型，菜单，按钮
-	Apis       []string `json:"apis"`                  // 此动作需要拥有的api访问权限，如果是按钮，可以设置此字段
-	Children   []*Menu  `json:"children,omitempty"`
+	ID          string   `json:"id"`                 // 菜单唯一标识
+	Path        string   `json:"path"`               // 前端路由地址
+	Name        string   `json:"name"`               // 前端路由名称，组件名称
+	ParentID    string   `json:"parentID"`           // 父级菜单ID
+	Rank        int      `json:"rank,omitempty"`     // 菜单排序
+	Meta        Meta     `json:"meta"`               // 菜单 meta 信息，用于前端显示
+	MenuType    MenuType `json:"menuType"`           // 菜单类型，菜单，按钮
+	Permissions []string `json:"permissions"`        // 此动作需要拥有的api访问权限，如果是按钮，可以设置此字段
+	Children    []*Menu  `json:"children,omitempty"` // 子菜单
 }
 
 // Clone 复制菜单
@@ -45,19 +52,143 @@ func (i *Menu) Clone() *Menu {
 	return &cloneMenu
 }
 
+var staticMenus []*Menu
+
 type MenuManager struct {
-	menus []*Menu
 }
 
+// AddMenu 添加菜单
 func (m *MenuManager) AddMenu(menus ...*Menu) {
-	m.menus = append(m.menus, menus...)
+	staticMenus = append(staticMenus, menus...)
 }
 
-func (m *MenuManager) GetMenus() []*Menu {
+// CloneMenus 复制菜单, 避免修改原菜单
+func (m *MenuManager) CloneMenus() []*Menu {
 	var clonedMenus []*Menu
 
-	for _, menu := range m.menus {
+	for _, menu := range staticMenus {
 		clonedMenus = append(clonedMenus, menu.Clone())
 	}
 	return clonedMenus
+}
+
+// GetMenuWithoutBtn 获取菜单，不包含按钮
+func (m *MenuManager) GetMenuWithoutBtn() []*Menu {
+	clonedMenu := m.GetAllMenusWithBtn()
+	for _, m2 := range clonedMenu {
+		iteratorMenuWithoutBtn(m2, 1)
+	}
+	return clonedMenu
+}
+
+// GetMenuByMenuIDs 根据菜单id，返回菜单
+func (m *MenuManager) GetMenuByMenuIDs(menuIDs ...string) []*Menu {
+	if len(menuIDs) == 0 {
+		return nil
+	}
+	clonedMenu := m.GetAllMenusWithBtn()
+	for _, m2 := range clonedMenu {
+		iteratorMenuSetShowLink(m2, menuIDs...)
+	}
+
+	for _, menu := range clonedMenu {
+		iteratorMenuWithoutBtn(menu, 1)
+	}
+
+	return clonedMenu
+}
+
+// GetAllMenusWithBtn 获取菜单，包含按钮
+func (m *MenuManager) GetAllMenusWithBtn() []*Menu {
+	clonedMenu := m.CloneMenus()
+	for _, m2 := range clonedMenu {
+		iteratorMenu(m2, 1)
+	}
+	return clonedMenu
+}
+
+// GetPermissionsByMenuIDs 根据菜单的id，返回所有的权限
+func (m *MenuManager) GetPermissionsByMenuIDs(ids ...string) []string {
+	var permissions []string
+	menus := m.GetAllMenusWithBtn()
+	for _, menu := range menus {
+		permissions = append(permissions, iteratorGetPermission(menu, ids...)...)
+	}
+	return utils.Unique(permissions)
+}
+
+// =================
+func iteratorMenuWithoutBtn(menu *Menu, level int) {
+	if level == 1 {
+		menu.ID = menu.Name
+	}
+
+	// 创建一个新的切片来保存过滤后的子节点
+	filteredChildren := make([]*Menu, 0)
+	for _, v := range menu.Children {
+		if v.MenuType == MenuTypeBtn {
+			continue
+		}
+		v.ID = menu.ID + "," + v.Name
+		v.ParentID = menu.Name
+
+		iteratorMenuWithoutBtn(v, level+1)
+
+		filteredChildren = append(filteredChildren, v)
+
+	}
+	menu.Children = filteredChildren
+}
+
+func iteratorMenu(menu *Menu, level int) {
+	menu.Meta.ShowLink = true
+	if level == 1 {
+		menu.ID = menu.Name
+	}
+	for _, v := range menu.Children {
+		v.ID = menu.ID + "," + v.Name
+		v.ParentID = menu.Name
+		iteratorMenu(v, level+1)
+	}
+}
+
+// iteratorGetPermission 迭代菜单获取权限
+func iteratorGetPermission(menu *Menu, ids ...string) []string {
+	var permissions []string
+	for _, id := range ids {
+		if menu.ID == id {
+			permissions = append(permissions, menu.Permissions...)
+		}
+	}
+
+	if menu.Children != nil && len(menu.Children) > 0 {
+		for _, v := range menu.Children {
+			subPermissions := iteratorGetPermission(v, ids...)
+			permissions = append(permissions, subPermissions...)
+		}
+	}
+	return permissions
+}
+
+func iteratorMenuSetShowLink(menu *Menu, ids ...string) bool {
+
+	var show bool
+	for _, id := range ids {
+		if menu.ID == id {
+			menu.Meta.ShowLink = true
+			show = true
+			break
+		}
+	}
+	var childShow bool
+	for _, v := range menu.Children {
+
+		x := iteratorMenuSetShowLink(v, ids...) // ↑
+		if x {
+			childShow = true
+			show = true
+		}
+	}
+	menu.Meta.ShowLink = childShow
+	return show
 }

@@ -24,6 +24,14 @@ type Options struct {
 	TimeZone     string `json:"timezone"`
 }
 
+type CustomReplacer struct {
+	f func(string) string
+}
+
+func (r CustomReplacer) Replace(name string) string {
+	return r.f(name)
+}
+
 func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
 
 	var dbGetter Connector
@@ -53,6 +61,7 @@ func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
 		NamingStrategy: schema.NamingStrategy{
 			//单数表名
 			SingularTable: true,
+			TablePrefix:   "admin_",
 		},
 		Logger:                 newLogger,
 		SkipDefaultTransaction: true,

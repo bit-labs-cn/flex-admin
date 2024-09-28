@@ -12,18 +12,10 @@ func Migrate(db *gorm.DB) {
 
 		&ModelApi{},
 
-		&ModelMenuButton{},
-
 		&ModelMenu{},
-
 		&ModelRole{},
-
-		&ModelRoleMenu{},
-
 		&ModelUser{},
-
+		&ModelRoleMenu{},
 		&ModelUserMenu{},
-
-		&ModelUserRole{},
 	)
 }

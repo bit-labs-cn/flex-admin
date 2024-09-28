@@ -1,10 +1,9 @@
 package model
 
-// ModelRoleMenu 角色与菜单关联表, 菜单映射到权限
+// ModelRoleMenu 用户和角色的菜单
 type ModelRoleMenu struct {
-	ModelBase
-	RoleId string `json:"roleId"`
-	MenuId string `json:"menuId"`
+	RoleID uint   `json:"roleID" gorm:"comment:角色id;index"`
+	MenuID string `json:"menuID" gorm:"comment:菜单id;index"`
 }
 
 func (i *ModelRoleMenu) TableName() string {

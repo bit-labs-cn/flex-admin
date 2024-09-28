@@ -6,8 +6,8 @@ import (
 )
 
 type ModelBase struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
+	ID        uint           `gorm:"primarykey" json:"id,string"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }

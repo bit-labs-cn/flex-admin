@@ -1,10 +1,9 @@
 package model
 
-// ModelUserMenu 用户与菜单关联，直接给用户赋予权限（一般用于附加权限）
+// ModelRoleMenu 用户和角色的菜单
 type ModelUserMenu struct {
-	ModelBase
-	UserId uint
-	MenuId string
+	UserID uint   `json:"userID" gorm:"comment:角色id;index"`
+	MenuID string `json:"menuID" gorm:"comment:菜单id;index"`
 }
 
 func (i *ModelUserMenu) TableName() string {

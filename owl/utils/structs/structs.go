@@ -601,3 +601,55 @@ func (s *Struct) nested(val reflect.Value, style KeyStyle) interface{} {
 
 	return finalVal
 }
+
+// GetStructFields 递归获取结构体所有字段，返回下划线的字段列表
+// @fields []string // 结构体的所有字段列表，除开 BaseModel
+func GetStructFields(s any) []string {
+	// 初始化一个空的字符串数组
+	var fields []string
+
+	// 获取结构体的 reflect.Value
+	exampleValue := reflect.ValueOf(s)
+
+	// 调用递归函数
+	getAllFieldNames(exampleValue, &fields, exampleValue.Type().Name())
+	return fields
+}
+
+// 定义一个函数来递归获取结构体的所有字段，并收集字段名称
+func getAllFieldNames(v reflect.Value, fields *[]string, typeName string) {
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldValue := v.Field(i)
+
+		// 过滤掉特定的字段
+		if field.Name == "BaseModel" {
+			continue
+		}
+
+		// 收集字段名称
+		*fields = append(*fields, strutil.Cc2Udl(field.Name))
+
+		// 如果字段是结构体类型，则递归调用
+		if fieldValue.Kind() == reflect.Struct {
+			getAllFieldNames(fieldValue, fields, field.Type.Name())
+		}
+	}
+}
+
+// GetMethodNames 获取结构体上的所有方法名称
+func GetMethodNames(anyStruct any) []string {
+	// 使用反射获取 MyStruct 类型
+	structValue := reflect.ValueOf(anyStruct)
+	structType := structValue.Type()
+
+	var methodNames []string
+
+	for i := 0; i < structType.NumMethod(); i++ {
+		method := structType.Method(i)
+		methodNames = append(methodNames, method.Name)
+	}
+
+	return methodNames
+}

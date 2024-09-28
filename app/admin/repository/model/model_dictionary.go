@@ -10,5 +10,5 @@ type ModelDictionary struct {
 }
 
 func (i *ModelDictionary) TableName() string {
-	return "admin_dictionaries"
+	return "admin_dictionary"
 }

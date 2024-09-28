@@ -24,3 +24,13 @@ db:
   time-zone: Asia/Shanghai
   # postgresql 参数
   ssl-mode: disable
+
+jwt:
+  secret: 123456
+  expire: 86400
+  refresh-expire: 604800
+  issuer: middle-center
+
+system:
+  super-admin: admin
+  super-admin-password: $2a$10$iO9q6SG7kGTH0TlnOMwwXOwFqGrVBQ1yFORv1lVcPndN.mICTY./6
