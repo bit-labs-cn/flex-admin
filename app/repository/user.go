@@ -1,0 +1,68 @@
+package repository
+
+import (
+	"bit-labs.cn/gin-flex-admin/app/model"
+	"bit-labs.cn/owl/db"
+	"context"
+	"errors"
+	"gorm.io/gorm"
+)
+
+var ErrUserExists = errors.New("用户已存在")
+var ErrUserNotExists = errors.New("用户不存在")
+
+type UserRepositoryInterface interface {
+	FindById(id any) (*model.User, error)
+	Save(user *model.User) error
+	Delete(ids ...any) error
+	Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.User, err error)
+	GetByName(name string) (model.User, error)
+}
+
+var _ UserRepositoryInterface = (*UserRepository)(nil)
+
+type UserRepository struct {
+	db  *gorm.DB
+	ctx context.Context
+	db.BaseRepository[model.User]
+}
+
+func NewUserRepository(tx *gorm.DB) UserRepositoryInterface {
+	return &UserRepository{
+		db:             tx,
+		BaseRepository: db.NewBaseRepository[model.User](tx),
+	}
+}
+
+func (i *UserRepository) Save(user *model.User) error {
+	_, exists := i.BaseRepository.Unique(user.ID, func(db *gorm.DB) {
+		db.Where("username", user.Username)
+	})
+	if exists {
+		return ErrUserExists
+	}
+
+	err := i.db.Save(&user).Error
+	if err != nil {
+		return err
+	}
+	err = i.db.Model(&user).Association("Roles").Replace(&user.Roles)
+
+	return err
+}
+func (i *UserRepository) FindById(id any) (*model.User, error) {
+	var user model.User
+	err := i.db.Where("id = ?", id).Preload("Roles").First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &user, ErrUserNotExists
+	}
+	return &user, err
+}
+func (i *UserRepository) GetByName(name string) (model.User, error) {
+	var user model.User
+	err := i.db.Where("username = ?", name).Preload("Roles").First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return user, ErrUserNotExists
+	}
+	return user, err
+}

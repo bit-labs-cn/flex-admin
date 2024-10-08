@@ -34,6 +34,6 @@
 
 感谢您对gin-vue-admin的贡献!
 
-<a href="https://github.com/guoliang1994/gin-flex-admin/graphs/contributors">
+<a href="https://bit-labs.cn/gin-flex-admin/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=guoliang1994/gin-flex-admin" />
 </a>

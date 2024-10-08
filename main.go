@@ -1,16 +1,14 @@
 package main
 
 import (
-	"github.com/guoliang1994/gin-flex-admin/app/admin"
-	"github.com/guoliang1994/gin-flex-admin/app/admin/service"
-	cms "github.com/guoliang1994/gin-flex-admin/app/cms"
-	"github.com/guoliang1994/gin-flex-admin/owl"
+	"bit-labs.cn/gin-flex-admin/app/admin"
+	_ "bit-labs.cn/gin-flex-admin/docs"
+	"bit-labs.cn/owl"
 )
 
 func main() {
-
-	owl.NewApp("gin-flex-admin").
-		BeforeRun(service.MenuStore).
-		Run(new(admin.SubAppAdmin), new(cms.SubAppCms))
-
+	var subApps = []owl.SubApp{
+		&admin.SubAppAdmin{},
+	}
+	owl.NewApp(subApps...).Run()
 }

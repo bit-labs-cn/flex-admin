@@ -1,0 +1,79 @@
+package admin
+
+import (
+	"bit-labs.cn/gin-flex-admin/app/cmd"
+	"bit-labs.cn/gin-flex-admin/app/database"
+	v1 "bit-labs.cn/gin-flex-admin/app/handle/v1"
+	"bit-labs.cn/gin-flex-admin/app/listener"
+	admProvider "bit-labs.cn/gin-flex-admin/app/provider"
+	"bit-labs.cn/gin-flex-admin/app/repository"
+	"bit-labs.cn/gin-flex-admin/app/route"
+	"bit-labs.cn/gin-flex-admin/app/service"
+	"bit-labs.cn/owl"
+	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/db"
+	"bit-labs.cn/owl/provider"
+	"github.com/spf13/cobra"
+	"gorm.io/gorm"
+)
+
+var _ owl.SubApp = (*SubAppAdmin)(nil)
+
+type SubAppAdmin struct {
+	app foundation.Application
+}
+
+func (i *SubAppAdmin) Name() string {
+	return "admin"
+}
+
+func (i *SubAppAdmin) Bootstrap() {
+	i.app.Invoke(func(db *gorm.DB) {
+		database.Migrate(db)
+		listener.Init(i.app)
+	})
+}
+
+func (i *SubAppAdmin) RegisterRouters() {
+	route.InitApi(i.app, i.Name())
+}
+
+func (i *SubAppAdmin) Binds() []any {
+	return []any{
+		v1.NewApiHandle,
+		v1.NewMenuHandle,
+
+		v1.NewUserHandle,
+		service.NewUserService,
+		repository.NewUserRepository,
+
+		v1.NewRoleHandle,
+		service.NewRoleService,
+		repository.NewRoleRepository,
+
+		v1.NewDictHandle,
+		service.NewDictService,
+		repository.NewDictRepository,
+
+		v1.NewDeptHandle,
+		service.NewDeptService,
+		repository.NewDeptRepository,
+	}
+}
+func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
+	return []foundation.ServiceProvider{
+		&provider.GuardProvider{},
+		&db.DBServiceProvider{},
+		&admProvider.MenuSaveServiceProvider{},
+	}
+}
+func (i *SubAppAdmin) Menu() *owl.Menu {
+	return route.InitMenu()
+}
+
+func (i *SubAppAdmin) Commands() []*cobra.Command {
+	return []*cobra.Command{
+		cmd.Version,
+		cmd.GenMigrate,
+	}
+}
