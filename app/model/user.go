@@ -6,22 +6,15 @@ import (
 	"time"
 )
 
-const (
-	UserSourceRegister = "register"
-	UserSourceWechat   = "wechat"
-	UserSourceImport   = "import"
-	UserSourceCreate   = "create"
-)
-
 type User struct {
 	Base
-	Avatar     *string    `gorm:"comment:用户头像" json:"avatar"`
+	Avatar     string     `gorm:"comment:用户头像" json:"avatar"`
 	Username   string     `gorm:"comment:用户名称" json:"username"`
 	Nickname   string     `gorm:"comment:用户昵称" json:"nickname"`
 	Password   string     `gorm:"comment:用户密码" json:"-"`
-	Remark     *string    `gorm:"comment:remark" json:"remark"`
-	Phone      *string    `gorm:"comment:手机" json:"phone"`
-	Email      *string    `gorm:"comment:邮箱" json:"email"`
+	Remark     string     `gorm:"comment:remark" json:"remark"`
+	Phone      string     `gorm:"comment:手机" json:"phone"`
+	Email      string     `gorm:"comment:邮箱" json:"email"`
 	Status     int        `gorm:"comment:状态" json:"status"`
 	Sex        int        `gorm:"comment:性别" json:"sex"`
 	VerifiedAt *time.Time `gorm:"comment:验证时间" json:"verified_at"`
@@ -52,7 +45,7 @@ func (i *User) ChangePassword(old, new string) error {
 }
 
 func (i *User) SetAvatar(avatar string) {
-	i.Avatar = &avatar
+	i.Avatar = avatar
 }
 
 func (i *User) GetRoleIDs() []string {

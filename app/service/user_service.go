@@ -30,6 +30,8 @@ type UserBatchFields struct {
 	Remark   string `json:"remark"`
 	Status   int    `json:"status"`
 	Sex      *int   `json:"sex"`
+	Source   string `json:"source"`
+	SourceID string `json:"sourceID"`
 }
 
 // CreateUserReq 创建用户
@@ -247,7 +249,6 @@ func (i *UserService) CreateUser(req *CreateUserReq) error {
 		return err
 	}
 	user.Password = utils.BcryptHash(req.Password)
-	user.Source = model.UserSourceCreate
 
 	if err = i.userRepo.Save(&user); err != nil {
 		return err
@@ -263,7 +264,6 @@ func (i *UserService) Register(req *model.User) error {
 	if err != nil {
 		return err
 	}
-	user.Source = model.UserSourceRegister
 
 	return i.userRepo.Save(&user)
 }

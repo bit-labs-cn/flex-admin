@@ -36,7 +36,7 @@ func NewUserRepository(tx *gorm.DB) UserRepositoryInterface {
 
 func (i *UserRepository) Save(user *model.User) error {
 	_, exists := i.BaseRepository.Unique(user.ID, func(db *gorm.DB) {
-		db.Where("username", user.Username)
+		db.Where("username", user.Username).Where("source", user.Source)
 	})
 	if exists {
 		return ErrUserExists

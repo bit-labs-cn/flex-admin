@@ -1,6 +1,7 @@
 package route
 
 import (
+	"bit-labs.cn/gin-flex-admin/app/handle/oauth"
 	v1 "bit-labs.cn/gin-flex-admin/app/handle/v1"
 	middleware2 "bit-labs.cn/gin-flex-admin/app/middleware"
 	"bit-labs.cn/owl"
@@ -42,12 +43,13 @@ func InitApi(app foundation.Application, appName string) {
 		dictHandle *v1.DictHandle,
 		deptHandle *v1.DeptHandle,
 		enforcer casbin.IEnforcer,
+		oauthHandle *oauth.Handle,
 		engine *gin.Engine,
 		log log.Logger,
 	) {
 
 		gv1 := engine.Group("/api/v1").Use(middleware.Cors(), middleware2.PermissionCheck(engine, enforcer))
-
+		oauthGroup := engine.Group("/oauth")
 		// user
 		{
 			r := owl.NewRouteInfoBuilder(appName, userHandle, gv1, owl.MenuOption{
@@ -182,6 +184,13 @@ func InitApi(app foundation.Application, appName string) {
 			router.Get("/dept/:id/users", owl.Authorized, roleHandle.GetRoleMenuIDs).Name("获取部门下的用户").Build()
 
 			deptMenu = router.GetMenu()
+		}
+		// oauth
+
+		{
+			router := owl.NewRouteInfoBuilder(appName, oauthHandle, oauthGroup, owl.MenuOption{})
+			router.Get("/:provider/login", owl.Public, oauthHandle.Login).Name("第三方登录").Build()
+			router.Get("/:provider/callback", owl.Public, oauthHandle.Callback).Name("第三方登录回调").Build()
 		}
 	})
 	owl.PanicIf(err)

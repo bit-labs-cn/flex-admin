@@ -3,6 +3,7 @@ package admin
 import (
 	"bit-labs.cn/gin-flex-admin/app/cmd"
 	"bit-labs.cn/gin-flex-admin/app/database"
+	"bit-labs.cn/gin-flex-admin/app/handle/oauth"
 	v1 "bit-labs.cn/gin-flex-admin/app/handle/v1"
 	"bit-labs.cn/gin-flex-admin/app/listener"
 	admProvider "bit-labs.cn/gin-flex-admin/app/provider"
@@ -58,6 +59,8 @@ func (i *SubAppAdmin) Binds() []any {
 		v1.NewDeptHandle,
 		service.NewDeptService,
 		repository.NewDeptRepository,
+
+		oauth.NewOauthHandle,
 	}
 }
 func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {

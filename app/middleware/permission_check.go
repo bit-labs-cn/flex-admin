@@ -8,6 +8,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
+	"net/http"
 	"strings"
 )
 
@@ -17,12 +18,12 @@ func PermissionCheck(engine *gin.Engine, enforcer casbin.IEnforcer) gin.HandlerF
 		url := ctx.Request.URL.Path
 		method := ctx.Request.Method
 
-		apis := engine.GetAllRoutes()
+		routes := engine.GetAllRoutes()
 
-		var find bool
-		for _, api := range apis {
+		var findRoute bool
+		for _, api := range routes {
 			if api.Method == method && utils.UrlIsEq(url, api.Path) {
-				find = true
+				findRoute = true
 				accessLevel := api.Extra.(*owl.RouterInfo).AccessLevel
 				if accessLevel == owl.Public {
 					ctx.Next()
@@ -34,6 +35,7 @@ func PermissionCheck(engine *gin.Engine, enforcer casbin.IEnforcer) gin.HandlerF
 					var JWTService = service.NewJWTService(service.JWTOptions{})
 					user, err := JWTService.ParseToken(strings.Replace(token, "Bearer ", "", -1))
 					if err != nil {
+						_ = ctx.AbortWithError(http.StatusUnauthorized, errors.New("未授权的访问"))
 						return
 					}
 
@@ -44,7 +46,7 @@ func PermissionCheck(engine *gin.Engine, enforcer casbin.IEnforcer) gin.HandlerF
 					}
 					// 只有系统管理员才能访问
 					if accessLevel == owl.AdminOnly && !user.IsSuperAdmin {
-						_ = ctx.AbortWithError(403, errors.New("未授权的访问"))
+						_ = ctx.AbortWithError(http.StatusForbidden, errors.New("未授权的访问"))
 						return
 					}
 
@@ -60,19 +62,19 @@ func PermissionCheck(engine *gin.Engine, enforcer casbin.IEnforcer) gin.HandlerF
 						enforcer.LoadPolicy()
 						can, err := enforcer.Enforce(cast.ToString(user.ID), permissionKey)
 						if err != nil {
-							_ = ctx.AbortWithError(500, err)
+							_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 							return
 						}
 						if !can {
-							_ = ctx.AbortWithError(403, errors.New("未授权的访问"))
+							_ = ctx.AbortWithError(http.StatusForbidden, errors.New("未授权的访问"))
 							return
 						}
 					}
 				}
 			}
 		}
-		if !find {
-			_ = ctx.AbortWithError(404, errors.New("未找到匹配的路由"))
+		if !findRoute {
+			_ = ctx.AbortWithError(http.StatusNotFound, errors.New("未找到匹配的路由"))
 		}
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"bit-labs.cn/owl/db"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
-	"net/http"
 )
 
 var _ owl.Handler = (*UserHandle)(nil)
@@ -40,17 +39,14 @@ func (i *UserHandle) Create(ctx *gin.Context) {
 	}
 
 	err := i.userSvc.CreateUser(req)
-	if err != nil {
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"msg": err})
+	owl.Auto(ctx, nil, err)
 }
 
 func (i *UserHandle) Delete(ctx *gin.Context) {
 
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.userSvc.DeleteUser(id)
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": err})
+	owl.Auto(ctx, nil, err)
 }
 
 func (i *UserHandle) Detail(ctx *gin.Context) {
@@ -67,10 +63,7 @@ func (i *UserHandle) Update(ctx *gin.Context) {
 	req.ID = id
 
 	err := i.userSvc.UpdateUser(req)
-	if err != nil {
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"msg": err})
+	owl.Auto(ctx, nil, err)
 }
 
 // ChangeStatus 修改用户状态
@@ -83,8 +76,8 @@ func (i *UserHandle) ChangeStatus(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
-	_ = i.userSvc.ChangeStatus(req)
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "msg": "ok"})
+	err := i.userSvc.ChangeStatus(req)
+	owl.Auto(ctx, nil, err)
 }
 
 // Retrieve 获取用户列表
@@ -101,19 +94,19 @@ func (i *UserHandle) Retrieve(ctx *gin.Context) {
 		owl.Fail(ctx, err.Error())
 		return
 	}
-	owl.Success(ctx, gin.H{"list": list, "pageSize": req.PageSize, "currentPage": req.Page, "total": count})
+	owl.Auto(ctx, gin.H{"list": list, "pageSize": req.PageSize, "currentPage": req.Page, "total": count}, err)
 }
 
 // AssignRolesToUser 分配角色给用户
 func (i *UserHandle) AssignRolesToUser(ctx *gin.Context) {
 	req := new(service.AssignRoleToUser)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"msg": err.Error()})
+		owl.Auto(ctx, nil, err)
 		return
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
 	menuIds := i.userSvc.AssignRoleToUser(req)
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": menuIds})
+	owl.Auto(ctx, menuIds, nil)
 }
 
 // GetRoleIdsByUserId 获取用户角色
@@ -121,22 +114,19 @@ func (i *UserHandle) GetRoleIdsByUserId(ctx *gin.Context) {
 
 	userID := cast.ToUint(ctx.Param("id"))
 	ids, err := i.userSvc.GetUserRoleIDs(userID)
-	if err != nil {
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": ids})
+	owl.Auto(ctx, ids, err)
 }
 
 // AssignMenuToUser 分配菜单给用户
 func (i *UserHandle) AssignMenuToUser(ctx *gin.Context) {
 	req := new(service.AssignRoleToUser)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"msg": err.Error()})
+		owl.Auto(ctx, nil, err)
 		return
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
 	menuIds := i.userSvc.AssignRoleToUser(req)
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": menuIds})
+	owl.Auto(ctx, menuIds, nil)
 }
 
 // GetMyMenus 获取用户菜单
@@ -144,19 +134,11 @@ func (i *UserHandle) GetMyMenus(ctx *gin.Context) {
 
 	user, _ := ctx.Get("user")
 	if user.(*model.User).IsSuperAdmin {
-		ctx.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"msg":     "获取menus成功",
-			"data":    i.menuRepo.GetMenuWithoutBtn(),
-		})
+		owl.Auto(ctx, i.menuRepo.GetMenuWithoutBtn(), nil)
 		return
 	}
 	menus := i.userSvc.GetUserMenus(user.(*model.User).ID)
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"msg":     "获取menus成功",
-		"data":    menus,
-	})
+	owl.Auto(ctx, menus, nil)
 	return
 }
 func (i *UserHandle) ChangePassword(ctx *gin.Context) {
@@ -175,11 +157,7 @@ func (i *UserHandle) Login(ctx *gin.Context) {
 	}
 
 	login, err := i.userSvc.Login(&req)
-	if err != nil {
-		owl.Fail(ctx, err.Error())
-		return
-	}
-	owl.Success(ctx, login)
+	owl.Auto(ctx, login, err)
 }
 func (i *UserHandle) Register(ctx *gin.Context) {
 
