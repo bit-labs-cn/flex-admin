@@ -14,8 +14,13 @@ import (
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/db"
 	"bit-labs.cn/owl/provider"
+	socketio "github.com/googollee/go-socket.io"
+	"github.com/googollee/go-socket.io/engineio"
+	"github.com/googollee/go-socket.io/engineio/transport"
+	"github.com/googollee/go-socket.io/engineio/transport/websocket"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 var _ owl.SubApp = (*SubAppAdmin)(nil)
@@ -61,6 +66,19 @@ func (i *SubAppAdmin) Binds() []any {
 		repository.NewDeptRepository,
 
 		oauth.NewOauthHandle,
+
+		func() *socketio.Server {
+			server := socketio.NewServer(&engineio.Options{
+				Transports: []transport.Transport{
+					&websocket.Transport{
+						CheckOrigin: func(r *http.Request) bool {
+							return true
+						},
+					},
+				},
+			})
+			return server
+		},
 	}
 }
 func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
