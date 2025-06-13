@@ -164,5 +164,7 @@ func (i *UserHandle) Register(ctx *gin.Context) {
 }
 
 func (i *UserHandle) Me(ctx *gin.Context) {
+	value, _ := ctx.Get("user")
 
+	owl.Auto(ctx, value, nil)
 }

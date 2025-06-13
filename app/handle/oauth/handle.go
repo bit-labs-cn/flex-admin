@@ -1,18 +1,13 @@
 package oauth
 
 import (
-	"bit-labs.cn/flex-admin/app/provider/jwt"
-	"bit-labs.cn/flex-admin/app/repository"
-	"bit-labs.cn/flex-admin/app/service"
-	"bit-labs.cn/owl/provider/conf"
-	"bit-labs.cn/owl/provider/router"
-
+	"bit-labs.cn/gin-flex-admin/app/repository"
+	"bit-labs.cn/gin-flex-admin/app/service"
+	"bit-labs.cn/owl"
+	"bit-labs.cn/owl/conf"
+	"bit-labs.cn/owl/contract/foundation"
 	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
-
-	"bit-labs.cn/owl/contract/foundation"
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/jinzhu/copier"
@@ -20,20 +15,22 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
+	"io"
+	"net/http"
 )
 
 type Handle struct {
 	app     foundation.Application
 	userSvc *service.UserService
 	sio     *socketio.Server
-	jwtSvc  *jwt.JWTService
+	jwtSvc  service.JWTService
 }
 
 func (i *Handle) ModuleName() (en string, zh string) {
 	return "oauth", "oauth"
 }
 
-var _ router.Handler = (*Handle)(nil)
+var _ owl.Handler = (*Handle)(nil)
 
 var GitHubConfig = &oauth2.Config{
 	ClientID:     "",
@@ -62,12 +59,7 @@ var GiteeConfig = &oauth2.Config{
 	},
 }
 
-func NewOauthHandle(
-	app foundation.Application,
-	configure *conf.Configure,
-	userService *service.UserService,
-	sio *socketio.Server,
-	jwtSvc *jwt.JWTService) *Handle {
+func NewOauthHandle(app foundation.Application, configure *conf.Configure, userService *service.UserService, sio *socketio.Server) *Handle {
 	var c struct {
 		ClientID     string `json:"client-id"`
 		ClientSecret string `json:"client-secret"`
@@ -87,25 +79,14 @@ func NewOauthHandle(
 		app:     app,
 		userSvc: userService,
 		sio:     sio,
-		jwtSvc:  jwtSvc,
 	}
 }
-
-// @Summary		第三方登录
-// @Description	通过第三方平台（GitHub、Google、Gitee）进行OAuth登录
-// @Tags			OAuth认证
-// @Produce		json
-// @Param			provider	path	string	true	"第三方平台"	Enums(github,google,gitee)
-// @Param			state		query	string	false	"状态参数"
-// @Success		302			"重定向到第三方授权页面"
-// @Failure		400			{object}	router.Resp	"参数错误"
-// @Router			/oauth/{provider}/login [GET]
 func (i *Handle) Login(c *gin.Context) {
 	provider := c.Param("provider")
 	conf := getOAuthConfig(provider)
 	state := c.Query("state")
 	if conf == nil {
-		c.JSON(http.StatusBadRequest, router.Resp{Success: false, Msg: "Unsupported provider"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported provider"})
 		return
 	}
 	url := conf.AuthCodeURL(state)
@@ -124,30 +105,20 @@ func getOAuthConfig(provider string) *oauth2.Config {
 	}
 }
 
-// @Summary		第三方授权回调
-// @Description	处理第三方平台的OAuth授权回调，完成用户登录
-// @Tags			OAuth认证
-// @Produce		json
-// @Param			provider	path		string		true	"第三方平台"	Enums(github,google,gitee)
-// @Param			code		query		string		true	"授权码"
-// @Param			state		query		string		false	"状态参数"
-// @Success		200			{string}	string		"登录成功页面"
-// @Failure		400			{object}	router.Resp	"参数错误"
-// @Failure		500			{object}	router.Resp	"服务器内部错误"
-// @Router			/oauth/{provider}/callback [GET]
+// Callback 第三方授权登录回调
 func (i *Handle) Callback(c *gin.Context) {
 	provider := c.Param("provider")
 	state := c.Query("state")
 	conf := getOAuthConfig(provider)
 	if conf == nil {
-		c.JSON(http.StatusBadRequest, router.Resp{Success: false, Msg: "Unsupported provider"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported provider"})
 		return
 	}
 
 	code := c.Query("code")
 	token, err := conf.Exchange(c, code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: "Token exchange failed", Data: err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token exchange failed", "err": err.Error()})
 		return
 	}
 
@@ -166,7 +137,7 @@ func (i *Handle) Callback(c *gin.Context) {
 
 	resp, err := client.Get(userInfoURL)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: "Failed to get user info"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info"})
 		return
 	}
 	defer resp.Body.Close()
@@ -184,7 +155,7 @@ func (i *Handle) Callback(c *gin.Context) {
 			Phone:    "",
 			Remark:   cast.ToString(user["bio"]),
 			Status:   0,
-			Sex:      3,
+			Sex:      nil,
 			Source:   provider,
 			SourceID: cast.ToString(user["id"]),
 		},
@@ -193,7 +164,7 @@ func (i *Handle) Callback(c *gin.Context) {
 	err = i.userSvc.CreateUser(createUser)
 
 	if err != nil && !errors.Is(err, repository.ErrUserExists) {
-		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: err.Error()})
+		owl.Auto(c, gin.H{}, err)
 		return
 	}
 
@@ -236,7 +207,7 @@ func (i *Handle) Callback(c *gin.Context) {
 
 	generateToken, err := i.userSvc.LoginByThirdParty(createUser.Username, provider)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: err.Error()})
+		owl.Auto(c, gin.H{}, err)
 		return
 	}
 	i.sio.BroadcastToNamespace("/", state, generateToken.AccessToken)

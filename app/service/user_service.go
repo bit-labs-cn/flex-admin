@@ -17,9 +17,7 @@ import (
 )
 
 var (
-	ErrLogin         = errors.New("用户名或密码错误")
-	ErrUserNotExists = errors.New("用户不存在")
-	ErrUserExists    = errors.New("用户已存在")
+	ErrLogin = errors.New("用户名或密码错误")
 )
 
 type UserBatchFields struct {
@@ -136,6 +134,21 @@ func (i *UserService) Login(req *LoginReq) (resp *LoginResp, err error) {
 	token, err := i.jwtSvc.GenerateToken(user)
 	return &LoginResp{
 		User:        user,
+		AccessToken: token,
+	}, err
+}
+
+// LoginByThirdParty 第三方用户登录
+func (i *UserService) LoginByThirdParty(username, provider string) (resp *LoginResp, err error) {
+
+	thirdProvider, err := i.userRepo.GetByNameAndThirdProvider(username, provider)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := i.jwtSvc.GenerateToken(&thirdProvider)
+	return &LoginResp{
+		User:        &thirdProvider,
 		AccessToken: token,
 	}, err
 }

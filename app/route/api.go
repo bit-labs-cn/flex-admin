@@ -49,7 +49,7 @@ func InitApi(app foundation.Application, appName string) {
 	) {
 
 		gv1 := engine.Group("/api/v1").Use(middleware.Cors(), middleware2.PermissionCheck(engine, enforcer))
-		oauthGroup := engine.Group("/oauth")
+
 		// user
 		{
 			r := owl.NewRouteInfoBuilder(appName, userHandle, gv1, owl.MenuOption{
@@ -188,9 +188,9 @@ func InitApi(app foundation.Application, appName string) {
 		// oauth
 
 		{
-			router := owl.NewRouteInfoBuilder(appName, oauthHandle, oauthGroup, owl.MenuOption{})
-			router.Get("/:provider/login", owl.Public, oauthHandle.Login).Name("第三方登录").Build()
-			router.Get("/:provider/callback", owl.Public, oauthHandle.Callback).Name("第三方登录回调").Build()
+			router := owl.NewRouteInfoBuilder(appName, oauthHandle, gv1, owl.MenuOption{})
+			router.Get("/oauth/:provider/login", owl.Public, oauthHandle.Login).Name("第三方登录").Build()
+			router.Get("/oauth/:provider/callback", owl.Public, oauthHandle.Callback).Name("第三方登录回调").Build()
 		}
 	})
 	owl.PanicIf(err)

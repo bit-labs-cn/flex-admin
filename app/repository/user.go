@@ -17,6 +17,7 @@ type UserRepositoryInterface interface {
 	Delete(ids ...any) error
 	Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.User, err error)
 	GetByName(name string) (model.User, error)
+	GetByNameAndThirdProvider(name string, provider string) (model.User, error)
 }
 
 var _ UserRepositoryInterface = (*UserRepository)(nil)
@@ -25,6 +26,11 @@ type UserRepository struct {
 	db  *gorm.DB
 	ctx context.Context
 	db.BaseRepository[model.User]
+}
+
+func (i *UserRepository) Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.User, err error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewUserRepository(tx *gorm.DB) UserRepositoryInterface {
@@ -61,6 +67,15 @@ func (i *UserRepository) FindById(id any) (*model.User, error) {
 func (i *UserRepository) GetByName(name string) (model.User, error) {
 	var user model.User
 	err := i.db.Where("username = ?", name).Preload("Roles").First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return user, ErrUserNotExists
+	}
+	return user, err
+}
+
+func (i *UserRepository) GetByNameAndThirdProvider(name string, provider string) (model.User, error) {
+	var user model.User
+	err := i.db.Where("username = ?", name).Where("source = ?", provider).Preload("Roles").First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return user, ErrUserNotExists
 	}
