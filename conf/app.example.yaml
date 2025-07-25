@@ -1,0 +1,21 @@
+app-name: "Quiver"
+app-env: "dev"
+listen: ":65"
+
+jwt:
+  secret: czs8lZsupQPuLEz2rNRdUBMSZS1gGpr2046VGkMsR
+  expire: 86400
+  refresh-expire: 604800
+  issuer: gin-flex-admin
+
+admin:
+  username: admin
+  password: $2a$10$B.V9TGN9A.czs8lZsupQPuLEz2rNRdUBMSZS1gGpr2046VGkMsR.q
+  mark: 123qwe
+
+log:
+  level: -1
+  max-size: 100
+  max-age: 7
+  max-backups: 3
+  file-name: runtime
