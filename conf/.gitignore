@@ -1,0 +1,6 @@
+*.yaml
+*.yml
+
+# 但保留名称中包含 example 的 yaml 文件
+!*example*.yaml
+!*example*.yml
