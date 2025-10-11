@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var userMenu, roleMenu, menuMenu, apiMenu, deptMenu *owl.Menu
+var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu *owl.Menu
 
 func InitMenu() *owl.Menu {
 	return &owl.Menu{
@@ -29,6 +29,7 @@ func InitMenu() *owl.Menu {
 			deptMenu,
 			menuMenu,
 			apiMenu,
+			dictMenu,
 		},
 	}
 }
@@ -77,7 +78,7 @@ func InitApi(app foundation.Application, appName string) {
 
 			r.Get("/users", owl.Authorized, userHandle.Retrieve).Deps(
 				[]owl.Dep{
-					{Handler: userHandle, Method: deptHandle.Retrieve},
+					{Handler: deptHandle, Method: deptHandle.Retrieve},
 				}...,
 			).Name("分页获取用户").Build()
 
@@ -167,6 +168,8 @@ func InitApi(app foundation.Application, appName string) {
 			router.Put("/dict/:id/item/:itemID", owl.AdminOnly, dictHandle.UpdateItem).Name("更新字典项").Build()
 			router.Get("/dict/:id/item", owl.AdminOnly, dictHandle.RetrieveItems).Name("获取字典列表").Build()
 			router.Delete("/dict/:id/item/:itemID", owl.AdminOnly, dictHandle.DeleteItem).Name("删除字典项").Build()
+
+			dictMenu = router.GetMenu()
 		}
 
 		// dept
