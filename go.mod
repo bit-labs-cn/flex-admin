@@ -31,6 +31,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/kardianos/service v1.2.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
@@ -38,6 +39,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.35.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
+	gopkg.in/guoliang1994/go-i18n.v2 v2.0.4 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gorm.io/driver/mysql v1.5.7 // indirect
 	gorm.io/driver/postgres v1.5.11 // indirect
@@ -99,7 +101,7 @@ require (
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
