@@ -1,4 +1,423 @@
 package seeder
 
+import (
+	"bit-labs.cn/flex-admin/app/model"
+	"gorm.io/gorm"
+	"log"
+)
+
 type DictionarySeeder struct {
+}
+
+// InitAllDictData 初始化所有字典数据（包括字典主表和字典项）
+func InitAllDictData(db *gorm.DB) {
+	// 使用事务确保数据一致性
+	err := db.Transaction(func(tx *gorm.DB) error {
+		// 先初始化字典主表数据
+		log.Println("开始初始化字典主表数据...")
+		if err := initDictDataWithTx(tx); err != nil {
+			log.Printf("初始化字典主表数据失败: %v", err)
+			return err
+		}
+		log.Println("字典主表数据初始化完成")
+
+		// 再初始化字典项数据
+		log.Println("开始初始化字典项数据...")
+		if err := initDictItemDataWithTx(tx); err != nil {
+			log.Printf("初始化字典项数据失败: %v", err)
+			return err
+		}
+		log.Println("字典项数据初始化完成")
+
+		return nil
+	})
+
+	if err != nil {
+		log.Printf("字典数据初始化失败: %v", err)
+	} else {
+		log.Println("所有字典数据初始化成功")
+	}
+}
+
+// initDictDataWithTx 在事务中初始化字典主表数据
+func initDictDataWithTx(tx *gorm.DB) error {
+	var dicts = []model.Dict{
+		{
+			Base:   model.Base{ID: 1},
+			Name:   "性别",
+			Type:   "gender",
+			Status: 1, // 启用状态
+			Desc:   "用户性别分类",
+			Sort:   1,
+		},
+		{
+			Base:   model.Base{ID: 2},
+			Name:   "用户状态",
+			Type:   "user_status",
+			Status: 1,
+			Desc:   "用户账号状态",
+			Sort:   2,
+		},
+		{
+			Base:   model.Base{ID: 3},
+			Name:   "在线状态",
+			Type:   "online_status",
+			Status: 1,
+			Desc:   "用户在线状态",
+			Sort:   3,
+		},
+		{
+			Base:   model.Base{ID: 4},
+			Name:   "审核状态",
+			Type:   "audit_status",
+			Status: 1,
+			Desc:   "审核流程状态",
+			Sort:   4,
+		},
+		{
+			Base:   model.Base{ID: 5},
+			Name:   "数据状态",
+			Type:   "data_status",
+			Status: 1,
+			Desc:   "数据记录状态",
+			Sort:   5,
+		},
+		{
+			Base:   model.Base{ID: 6},
+			Name:   "消息类型",
+			Type:   "message_type",
+			Status: 1,
+			Desc:   "系统消息类型",
+			Sort:   6,
+		},
+		{
+			Base:   model.Base{ID: 7},
+			Name:   "操作类型",
+			Type:   "operation_type",
+			Status: 1,
+			Desc:   "系统操作类型",
+			Sort:   7,
+		},
+		{
+			Base:   model.Base{ID: 8},
+			Name:   "日志级别",
+			Type:   "log_level",
+			Status: 1,
+			Desc:   "系统日志级别",
+			Sort:   8,
+		},
+	}
+
+	// 逐个检查并创建字典数据，避免重复插入
+	for _, dict := range dicts {
+		var existingDict model.Dict
+		result := tx.Where("type = ?", dict.Type).First(&existingDict)
+		if result.Error != nil {
+			// 如果不存在，则创建新记录
+			if result.Error == gorm.ErrRecordNotFound {
+				if err := tx.Model(&model.Dict{}).Create(&dict).Error; err != nil {
+					return err
+				}
+				log.Printf("创建字典: %s (%s)", dict.Name, dict.Type)
+			} else {
+				return result.Error
+			}
+		} else {
+			log.Printf("字典已存在: %s (%s)", dict.Name, dict.Type)
+		}
+	}
+	return nil
+}
+
+// initDictItemDataWithTx 在事务中初始化字典项数据
+func initDictItemDataWithTx(tx *gorm.DB) error {
+	var dictItems = []model.DictItem{
+		// 性别字典项 (DictID: 1)
+		{
+			Label:    "男",
+			Value:    "1",
+			Extend:   "",
+			Status:   1,
+			Sort:     1,
+			DictType: "gender",
+			DictID:   1,
+		},
+		{
+			Label:    "女",
+			Value:    "2",
+			Extend:   "",
+			Status:   1,
+			Sort:     2,
+			DictType: "gender",
+			DictID:   1,
+		},
+		{
+			Label:    "未知",
+			Value:    "0",
+			Extend:   "",
+			Status:   1,
+			Sort:     3,
+			DictType: "gender",
+			DictID:   1,
+		},
+
+		// 用户状态字典项 (DictID: 2)
+		{
+			Label:    "正常",
+			Value:    "1",
+			Extend:   "success",
+			Status:   1,
+			Sort:     1,
+			DictType: "user_status",
+			DictID:   2,
+		},
+		{
+			Label:    "禁用",
+			Value:    "0",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     2,
+			DictType: "user_status",
+			DictID:   2,
+		},
+		{
+			Label:    "待审核",
+			Value:    "2",
+			Extend:   "warning",
+			Status:   1,
+			Sort:     3,
+			DictType: "user_status",
+			DictID:   2,
+		},
+
+		// 在线状态字典项 (DictID: 3)
+		{
+			Label:    "在线",
+			Value:    "1",
+			Extend:   "success",
+			Status:   1,
+			Sort:     1,
+			DictType: "online_status",
+			DictID:   3,
+		},
+		{
+			Label:    "离线",
+			Value:    "0",
+			Extend:   "info",
+			Status:   1,
+			Sort:     2,
+			DictType: "online_status",
+			DictID:   3,
+		},
+		{
+			Label:    "忙碌",
+			Value:    "2",
+			Extend:   "warning",
+			Status:   1,
+			Sort:     3,
+			DictType: "online_status",
+			DictID:   3,
+		},
+		{
+			Label:    "隐身",
+			Value:    "3",
+			Extend:   "default",
+			Status:   1,
+			Sort:     4,
+			DictType: "online_status",
+			DictID:   3,
+		},
+
+		// 审核状态字典项 (DictID: 4)
+		{
+			Label:    "待审核",
+			Value:    "0",
+			Extend:   "warning",
+			Status:   1,
+			Sort:     1,
+			DictType: "audit_status",
+			DictID:   4,
+		},
+		{
+			Label:    "审核通过",
+			Value:    "1",
+			Extend:   "success",
+			Status:   1,
+			Sort:     2,
+			DictType: "audit_status",
+			DictID:   4,
+		},
+		{
+			Label:    "审核拒绝",
+			Value:    "2",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     3,
+			DictType: "audit_status",
+			DictID:   4,
+		},
+
+		// 数据状态字典项 (DictID: 5)
+		{
+			Label:    "启用",
+			Value:    "1",
+			Extend:   "success",
+			Status:   1,
+			Sort:     1,
+			DictType: "data_status",
+			DictID:   5,
+		},
+		{
+			Label:    "禁用",
+			Value:    "0",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     2,
+			DictType: "data_status",
+			DictID:   5,
+		},
+
+		// 消息类型字典项 (DictID: 6)
+		{
+			Label:    "系统通知",
+			Value:    "system",
+			Extend:   "info",
+			Status:   1,
+			Sort:     1,
+			DictType: "message_type",
+			DictID:   6,
+		},
+		{
+			Label:    "用户消息",
+			Value:    "user",
+			Extend:   "primary",
+			Status:   1,
+			Sort:     2,
+			DictType: "message_type",
+			DictID:   6,
+		},
+		{
+			Label:    "警告消息",
+			Value:    "warning",
+			Extend:   "warning",
+			Status:   1,
+			Sort:     3,
+			DictType: "message_type",
+			DictID:   6,
+		},
+		{
+			Label:    "错误消息",
+			Value:    "error",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     4,
+			DictType: "message_type",
+			DictID:   6,
+		},
+
+		// 操作类型字典项 (DictID: 7)
+		{
+			Label:    "新增",
+			Value:    "create",
+			Extend:   "success",
+			Status:   1,
+			Sort:     1,
+			DictType: "operation_type",
+			DictID:   7,
+		},
+		{
+			Label:    "修改",
+			Value:    "update",
+			Extend:   "primary",
+			Status:   1,
+			Sort:     2,
+			DictType: "operation_type",
+			DictID:   7,
+		},
+		{
+			Label:    "删除",
+			Value:    "delete",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     3,
+			DictType: "operation_type",
+			DictID:   7,
+		},
+		{
+			Label:    "查询",
+			Value:    "select",
+			Extend:   "info",
+			Status:   1,
+			Sort:     4,
+			DictType: "operation_type",
+			DictID:   7,
+		},
+
+		// 日志级别字典项 (DictID: 8)
+		{
+			Label:    "调试",
+			Value:    "debug",
+			Extend:   "default",
+			Status:   1,
+			Sort:     1,
+			DictType: "log_level",
+			DictID:   8,
+		},
+		{
+			Label:    "信息",
+			Value:    "info",
+			Extend:   "info",
+			Status:   1,
+			Sort:     2,
+			DictType: "log_level",
+			DictID:   8,
+		},
+		{
+			Label:    "警告",
+			Value:    "warning",
+			Extend:   "warning",
+			Status:   1,
+			Sort:     3,
+			DictType: "log_level",
+			DictID:   8,
+		},
+		{
+			Label:    "错误",
+			Value:    "error",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     4,
+			DictType: "log_level",
+			DictID:   8,
+		},
+		{
+			Label:    "致命",
+			Value:    "fatal",
+			Extend:   "danger",
+			Status:   1,
+			Sort:     5,
+			DictType: "log_level",
+			DictID:   8,
+		},
+	}
+
+	// 逐个检查并创建字典项数据，避免重复插入
+	for _, item := range dictItems {
+		var existingItem model.DictItem
+		result := tx.Where("dict_type = ? AND value = ?", item.DictType, item.Value).First(&existingItem)
+		if result.Error != nil {
+			// 如果不存在，则创建新记录
+			if result.Error == gorm.ErrRecordNotFound {
+				if err := tx.Model(&model.DictItem{}).Create(&item).Error; err != nil {
+					return err
+				}
+				log.Printf("创建字典项: %s - %s (%s)", item.DictType, item.Label, item.Value)
+			} else {
+				return result.Error
+			}
+		} else {
+			log.Printf("字典项已存在: %s - %s (%s)", item.DictType, item.Label, item.Value)
+		}
+	}
+	return nil
 }

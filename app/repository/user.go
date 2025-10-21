@@ -28,11 +28,6 @@ type UserRepository struct {
 	db.BaseRepository[model.User]
 }
 
-func (i *UserRepository) Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.User, err error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewUserRepository(tx *gorm.DB) UserRepositoryInterface {
 	return &UserRepository{
 		db:             tx,

@@ -3,6 +3,7 @@ package admin
 import (
 	"bit-labs.cn/flex-admin/app/cmd"
 	"bit-labs.cn/flex-admin/app/database"
+	"bit-labs.cn/flex-admin/app/database/seeder"
 	"bit-labs.cn/flex-admin/app/handle/oauth"
 	v1 "bit-labs.cn/flex-admin/app/handle/v1"
 	"bit-labs.cn/flex-admin/app/listener"
@@ -36,6 +37,7 @@ func (i *SubAppAdmin) Name() string {
 func (i *SubAppAdmin) Bootstrap() {
 	i.app.Invoke(func(db *gorm.DB) {
 		database.Migrate(db)
+		seeder.InitAllDictData(db)
 		listener.Init(i.app)
 	})
 }
