@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	jsoniter "github.com/json-iterator/go"

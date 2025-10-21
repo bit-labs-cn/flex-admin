@@ -1,9 +1,9 @@
 package service
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/event"
-	"bit-labs.cn/gin-flex-admin/app/model"
-	"bit-labs.cn/gin-flex-admin/app/repository"
+	"bit-labs.cn/flex-admin/app/event"
+	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/contract/log"

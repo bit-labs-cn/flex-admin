@@ -1,9 +1,9 @@
 package route
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/handle/oauth"
-	v1 "bit-labs.cn/gin-flex-admin/app/handle/v1"
-	middleware2 "bit-labs.cn/gin-flex-admin/app/middleware"
+	"bit-labs.cn/flex-admin/app/handle/oauth"
+	v1 "bit-labs.cn/flex-admin/app/handle/v1"
+	middleware2 "bit-labs.cn/flex-admin/app/middleware"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"

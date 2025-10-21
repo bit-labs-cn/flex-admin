@@ -1,8 +1,8 @@
 package service
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/model"
-	"bit-labs.cn/gin-flex-admin/app/repository"
+	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/repository"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 )

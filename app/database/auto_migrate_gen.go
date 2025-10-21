@@ -2,7 +2,7 @@
 package database
 
 import (
-	. "bit-labs.cn/gin-flex-admin/app/model"
+	. "bit-labs.cn/flex-admin/app/model"
 	"gorm.io/gorm"
 )
 

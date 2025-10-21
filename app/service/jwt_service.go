@@ -1,7 +1,7 @@
 package service
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/model"
 	"github.com/golang-jwt/jwt/v5"
 	jsoniter "github.com/json-iterator/go"
 	"time"

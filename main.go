@@ -1,8 +1,7 @@
 package main
 
 import (
-	"bit-labs.cn/gin-flex-admin/app"
-	_ "bit-labs.cn/gin-flex-admin/docs"
+	admin "bit-labs.cn/flex-admin/app"
 	"bit-labs.cn/owl"
 )
 

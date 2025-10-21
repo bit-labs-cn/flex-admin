@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/service"
+	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/utils"
 	"errors"

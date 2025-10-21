@@ -1,4 +1,4 @@
-module bit-labs.cn/gin-flex-admin
+module bit-labs.cn/flex-admin
 
 go 1.23.8
 

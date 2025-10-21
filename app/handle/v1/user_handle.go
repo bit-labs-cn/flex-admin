@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/model"
-	"bit-labs.cn/gin-flex-admin/app/service"
+	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/db"

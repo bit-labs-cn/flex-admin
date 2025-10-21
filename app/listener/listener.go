@@ -1,8 +1,8 @@
 package listener
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/event"
-	"bit-labs.cn/gin-flex-admin/app/service"
+	"bit-labs.cn/flex-admin/app/event"
+	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"

@@ -1,8 +1,8 @@
 package oauth
 
 import (
-	"bit-labs.cn/gin-flex-admin/app/repository"
-	"bit-labs.cn/gin-flex-admin/app/service"
+	"bit-labs.cn/flex-admin/app/repository"
+	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/conf"
 	"bit-labs.cn/owl/contract/foundation"
