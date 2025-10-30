@@ -2,8 +2,9 @@ package model
 
 import (
 	"errors"
-	"github.com/spf13/cast"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 type User struct {

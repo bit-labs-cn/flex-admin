@@ -3,12 +3,13 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/spf13/cobra"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"path/filepath"
 	"text/template"
+
+	"github.com/spf13/cobra"
 )
 
 var tpl = `

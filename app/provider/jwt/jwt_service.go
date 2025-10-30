@@ -1,24 +1,25 @@
-package service
+package jwt
 
 import (
+	"time"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"github.com/golang-jwt/jwt/v5"
 	jsoniter "github.com/json-iterator/go"
-	"time"
 )
 
 type JWTOptions struct {
-	SigningKey string
-	Expire     int
-	Issuer     string
+	SigningKey string `json:"signing-key"`
+	Expire     int    `json:"expire"`
+	Issuer     string `json:"issuer"`
 }
 
 type JWTService struct {
 	opt JWTOptions
 }
 
-func NewJWTService(opt JWTOptions) JWTService {
-	return JWTService{opt: opt}
+func NewJWTService(opt JWTOptions) *JWTService {
+	return &JWTService{opt: opt}
 }
 
 type UserClaims struct {

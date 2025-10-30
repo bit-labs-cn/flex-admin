@@ -4,6 +4,7 @@ import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/provider/router"
 	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func (i *MenuSaveServiceProvider) Register() {
 }
 
 func (i *MenuSaveServiceProvider) Boot() {
-	err := i.app.Invoke(func(db *gorm.DB, manager *owl.MenuRepository) {
+	err := i.app.Invoke(func(db *gorm.DB, manager *router.MenuRepository) {
 		i.db = db
 		m := manager.CloneMenus()
 		db.Model(&model.Menu{}).Unscoped().Where("1=1").Delete(nil)
@@ -31,7 +32,7 @@ func (i *MenuSaveServiceProvider) Boot() {
 	owl.PanicIf(err)
 }
 
-func (i *MenuSaveServiceProvider) iter(menu *owl.Menu, level int) {
+func (i *MenuSaveServiceProvider) iter(menu *router.Menu, level int) {
 	if level == 1 {
 		menu.ID = menu.Name
 		meta, _ := jsoniter.MarshalToString(menu.Meta)
@@ -63,4 +64,7 @@ func (i *MenuSaveServiceProvider) iter(menu *owl.Menu, level int) {
 			})
 		}
 	}
+}
+func (i *MenuSaveServiceProvider) GenerateConf() map[string]string {
+	return nil
 }

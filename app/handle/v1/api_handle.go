@@ -1,12 +1,13 @@
 package v1
 
 import (
-	"bit-labs.cn/owl"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"bit-labs.cn/owl/provider/router"
+	"github.com/gin-gonic/gin"
 )
 
-var _ owl.Handler = (*ApiHandle)(nil)
+var _ router.Handler = (*ApiHandle)(nil)
 
 type ApiHandle struct {
 	engine *gin.Engine
@@ -19,21 +20,22 @@ func (i ApiHandle) ModuleName() (en string, zh string) {
 	return "api", "接口管理"
 }
 
-// GetAll
-// @Tags      Admin
-// @Summary   获取所有接口
-// @Security  JWT
-// @Accept    application/json
-// @Produce   application/json
-// @Param     data  body      string  false  "请求参数"
-// @Success   200  {object}  gin.RouteInfo{data=[]gin.RouteInfo}
-// @Router    /api/v1/api [get]
+//	@Tags			接口管理
+//	@Summary		获取所有接口
+//	@Description	获取系统中所有已注册的API接口信息
+//	@Name			获取所有接口
+//	@Success		200	{object}	router.RouterInfo	"接口列表获取成功"
+//	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
+//	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+//	@Router			/api/v1/api [GET]
+//	@Access			router.AccessAuthorized
+
 func (i ApiHandle) GetAll(c *gin.Context) {
-	routers := i.engine.GetAllRoutes()
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"msg":     "获取api成功",
-		"data":    routers,
+		"data":    router.GetAllRoutes(),
 	})
 	return
 }

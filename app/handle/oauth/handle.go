@@ -1,13 +1,18 @@
 package oauth
 
 import (
+	"bit-labs.cn/flex-admin/app/provider/jwt"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/flex-admin/app/service"
-	"bit-labs.cn/owl"
-	"bit-labs.cn/owl/conf"
-	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/provider/conf"
+	"bit-labs.cn/owl/provider/router"
+
 	"encoding/json"
 	"errors"
+	"io"
+	"net/http"
+
+	"bit-labs.cn/owl/contract/foundation"
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/jinzhu/copier"
@@ -15,22 +20,20 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
-	"io"
-	"net/http"
 )
 
 type Handle struct {
 	app     foundation.Application
 	userSvc *service.UserService
 	sio     *socketio.Server
-	jwtSvc  service.JWTService
+	jwtSvc  *jwt.JWTService
 }
 
 func (i *Handle) ModuleName() (en string, zh string) {
 	return "oauth", "oauth"
 }
 
-var _ owl.Handler = (*Handle)(nil)
+var _ router.Handler = (*Handle)(nil)
 
 var GitHubConfig = &oauth2.Config{
 	ClientID:     "",
@@ -59,7 +62,12 @@ var GiteeConfig = &oauth2.Config{
 	},
 }
 
-func NewOauthHandle(app foundation.Application, configure *conf.Configure, userService *service.UserService, sio *socketio.Server) *Handle {
+func NewOauthHandle(
+	app foundation.Application,
+	configure *conf.Configure,
+	userService *service.UserService,
+	sio *socketio.Server,
+	jwtSvc *jwt.JWTService) *Handle {
 	var c struct {
 		ClientID     string `json:"client-id"`
 		ClientSecret string `json:"client-secret"`
@@ -79,8 +87,21 @@ func NewOauthHandle(app foundation.Application, configure *conf.Configure, userS
 		app:     app,
 		userSvc: userService,
 		sio:     sio,
+		jwtSvc:  jwtSvc,
 	}
 }
+
+// Login 第三方登录
+//	@Summary		第三方登录
+//	@Description	通过第三方平台（GitHub、Google、Gitee）进行OAuth登录
+//	@Tags			OAuth认证
+//	@Router			/oauth/{provider}/login [GET]
+//	@Access			AccessPublic
+//	@Name			第三方登录
+//	@Param			provider	path	string	true	"第三方平台"	Enums(github,google,gitee)
+//	@Param			state		query	string	false	"状态参数"
+//	@Success		302			"重定向到第三方授权页面"
+
 func (i *Handle) Login(c *gin.Context) {
 	provider := c.Param("provider")
 	conf := getOAuthConfig(provider)
@@ -105,7 +126,17 @@ func getOAuthConfig(provider string) *oauth2.Config {
 	}
 }
 
-// Callback 第三方授权登录回调
+//	@Summary		第三方授权回调
+//	@Description	处理第三方平台的OAuth授权回调，完成用户登录
+//	@Tags			OAuth认证
+//	@Router			/oauth/{provider}/callback [GET]
+//	@Access			AccessPublic
+//	@Name			第三方授权回调
+//	@Param			provider	path		string	true	"第三方平台"	Enums(github,google,gitee)
+//	@Param			code		query		string	true	"授权码"
+//	@Param			state		query		string	false	"状态参数"
+//	@Success		200			{string}	string	"登录成功页面"
+
 func (i *Handle) Callback(c *gin.Context) {
 	provider := c.Param("provider")
 	state := c.Query("state")
@@ -164,7 +195,7 @@ func (i *Handle) Callback(c *gin.Context) {
 	err = i.userSvc.CreateUser(createUser)
 
 	if err != nil && !errors.Is(err, repository.ErrUserExists) {
-		owl.Auto(c, gin.H{}, err)
+		router.Auto(c, gin.H{}, err)
 		return
 	}
 
@@ -207,7 +238,7 @@ func (i *Handle) Callback(c *gin.Context) {
 
 	generateToken, err := i.userSvc.LoginByThirdParty(createUser.Username, provider)
 	if err != nil {
-		owl.Auto(c, gin.H{}, err)
+		router.Auto(c, gin.H{}, err)
 		return
 	}
 	i.sio.BroadcastToNamespace("/", state, generateToken.AccessToken)

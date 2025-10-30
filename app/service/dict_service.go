@@ -4,7 +4,8 @@ import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/contract"
-	"bit-labs.cn/owl/db"
+	"bit-labs.cn/owl/provider/db"
+
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 )

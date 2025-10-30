@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"bit-labs.cn/flex-admin/app/model"
-	"bit-labs.cn/owl/db"
 	"errors"
+
+	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/owl/provider/db"
 	"gorm.io/gorm"
 )
 

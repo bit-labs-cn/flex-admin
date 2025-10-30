@@ -1,9 +1,11 @@
 package seeder
 
 import (
+	"errors"
+	"log"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"gorm.io/gorm"
-	"log"
 )
 
 type DictionarySeeder struct {
@@ -14,7 +16,6 @@ func InitAllDictData(db *gorm.DB) {
 	// 使用事务确保数据一致性
 	err := db.Transaction(func(tx *gorm.DB) error {
 		// 先初始化字典主表数据
-		log.Println("开始初始化字典主表数据...")
 		if err := initDictDataWithTx(tx); err != nil {
 			log.Printf("初始化字典主表数据失败: %v", err)
 			return err
@@ -82,30 +83,6 @@ func initDictDataWithTx(tx *gorm.DB) error {
 			Desc:   "数据记录状态",
 			Sort:   5,
 		},
-		{
-			Base:   model.Base{ID: 6},
-			Name:   "消息类型",
-			Type:   "message_type",
-			Status: 1,
-			Desc:   "系统消息类型",
-			Sort:   6,
-		},
-		{
-			Base:   model.Base{ID: 7},
-			Name:   "操作类型",
-			Type:   "operation_type",
-			Status: 1,
-			Desc:   "系统操作类型",
-			Sort:   7,
-		},
-		{
-			Base:   model.Base{ID: 8},
-			Name:   "日志级别",
-			Type:   "log_level",
-			Status: 1,
-			Desc:   "系统日志级别",
-			Sort:   8,
-		},
 	}
 
 	// 逐个检查并创建字典数据，避免重复插入
@@ -114,7 +91,7 @@ func initDictDataWithTx(tx *gorm.DB) error {
 		result := tx.Where("type = ?", dict.Type).First(&existingDict)
 		if result.Error != nil {
 			// 如果不存在，则创建新记录
-			if result.Error == gorm.ErrRecordNotFound {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				if err := tx.Model(&model.Dict{}).Create(&dict).Error; err != nil {
 					return err
 				}
@@ -122,8 +99,6 @@ func initDictDataWithTx(tx *gorm.DB) error {
 			} else {
 				return result.Error
 			}
-		} else {
-			log.Printf("字典已存在: %s (%s)", dict.Name, dict.Type)
 		}
 	}
 	return nil
@@ -314,91 +289,6 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 			DictType: "message_type",
 			DictID:   6,
 		},
-
-		// 操作类型字典项 (DictID: 7)
-		{
-			Label:    "新增",
-			Value:    "create",
-			Extend:   "success",
-			Status:   1,
-			Sort:     1,
-			DictType: "operation_type",
-			DictID:   7,
-		},
-		{
-			Label:    "修改",
-			Value:    "update",
-			Extend:   "primary",
-			Status:   1,
-			Sort:     2,
-			DictType: "operation_type",
-			DictID:   7,
-		},
-		{
-			Label:    "删除",
-			Value:    "delete",
-			Extend:   "danger",
-			Status:   1,
-			Sort:     3,
-			DictType: "operation_type",
-			DictID:   7,
-		},
-		{
-			Label:    "查询",
-			Value:    "select",
-			Extend:   "info",
-			Status:   1,
-			Sort:     4,
-			DictType: "operation_type",
-			DictID:   7,
-		},
-
-		// 日志级别字典项 (DictID: 8)
-		{
-			Label:    "调试",
-			Value:    "debug",
-			Extend:   "default",
-			Status:   1,
-			Sort:     1,
-			DictType: "log_level",
-			DictID:   8,
-		},
-		{
-			Label:    "信息",
-			Value:    "info",
-			Extend:   "info",
-			Status:   1,
-			Sort:     2,
-			DictType: "log_level",
-			DictID:   8,
-		},
-		{
-			Label:    "警告",
-			Value:    "warning",
-			Extend:   "warning",
-			Status:   1,
-			Sort:     3,
-			DictType: "log_level",
-			DictID:   8,
-		},
-		{
-			Label:    "错误",
-			Value:    "error",
-			Extend:   "danger",
-			Status:   1,
-			Sort:     4,
-			DictType: "log_level",
-			DictID:   8,
-		},
-		{
-			Label:    "致命",
-			Value:    "fatal",
-			Extend:   "danger",
-			Status:   1,
-			Sort:     5,
-			DictType: "log_level",
-			DictID:   8,
-		},
 	}
 
 	// 逐个检查并创建字典项数据，避免重复插入
@@ -407,7 +297,7 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		result := tx.Where("dict_type = ? AND value = ?", item.DictType, item.Value).First(&existingItem)
 		if result.Error != nil {
 			// 如果不存在，则创建新记录
-			if result.Error == gorm.ErrRecordNotFound {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				if err := tx.Model(&model.DictItem{}).Create(&item).Error; err != nil {
 					return err
 				}
@@ -415,8 +305,6 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 			} else {
 				return result.Error
 			}
-		} else {
-			log.Printf("字典项已存在: %s - %s (%s)", item.DictType, item.Label, item.Value)
 		}
 	}
 	return nil

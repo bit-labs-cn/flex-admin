@@ -1,15 +1,17 @@
 package service
 
 import (
+	"errors"
+
 	"bit-labs.cn/flex-admin/app/event"
 	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/provider/jwt"
 	"bit-labs.cn/flex-admin/app/repository"
-	"bit-labs.cn/owl"
-	"bit-labs.cn/owl/conf"
 	"bit-labs.cn/owl/contract"
-	"bit-labs.cn/owl/db"
+	"bit-labs.cn/owl/provider/conf"
+	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/utils"
-	"errors"
 	"github.com/asaskevich/EventBus"
 	"github.com/casbin/casbin/v2"
 	"github.com/jinzhu/copier"
@@ -82,8 +84,8 @@ type AssignRolesReq struct {
 
 type UserService struct {
 	db         *gorm.DB
-	menuManger *owl.MenuRepository
-	jwtSvc     JWTService
+	menuManger *router.MenuRepository
+	jwtSvc     *jwt.JWTService
 	db.BaseRepository[model.User]
 	roleSvc   *RoleService
 	enforcer  casbin.IEnforcer
@@ -99,6 +101,8 @@ func NewUserService(
 	enforcer casbin.IEnforcer,
 	eventBus EventBus.Bus,
 	configure *conf.Configure,
+	jwtSvc *jwt.JWTService,
+	menuManager *router.MenuRepository,
 ) *UserService {
 	return &UserService{
 		db:             tx,
@@ -108,6 +112,8 @@ func NewUserService(
 		BaseRepository: db.NewBaseRepository[model.User](tx),
 		eventBus:       eventBus,
 		configure:      configure,
+		jwtSvc:         jwtSvc,
+		menuManger:     menuManager,
 	}
 }
 
@@ -179,7 +185,7 @@ func (i *UserService) GetUserByName(name string) (*model.User, error) {
 }
 
 // GetUserMenus 获取用户菜单
-func (i *UserService) GetUserMenus(userID uint) []*owl.Menu {
+func (i *UserService) GetUserMenus(userID uint) []*router.Menu {
 
 	user, err := i.userRepo.FindById(userID)
 	if err != nil {

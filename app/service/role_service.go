@@ -1,14 +1,15 @@
 package service
 
 import (
+	"context"
+
 	"bit-labs.cn/flex-admin/app/event"
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
-	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/contract/log"
-	"bit-labs.cn/owl/db"
-	"context"
+	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/router"
 	"github.com/asaskevich/EventBus"
 	"github.com/casbin/casbin/v2"
 	"github.com/jinzhu/copier"
@@ -55,11 +56,11 @@ type RoleService struct {
 	log      log.Logger
 
 	roleRepo repository.RoleRepositoryInterface
-	menuRepo *owl.MenuRepository
+	menuRepo *router.MenuRepository
 	eventbus EventBus.Bus
 }
 
-func NewRoleService(menuManager *owl.MenuRepository, roleRepo repository.RoleRepositoryInterface, enforcer casbin.IEnforcer, bus EventBus.Bus) *RoleService {
+func NewRoleService(menuManager *router.MenuRepository, roleRepo repository.RoleRepositoryInterface, enforcer casbin.IEnforcer, bus EventBus.Bus) *RoleService {
 	return &RoleService{
 		menuRepo: menuManager,
 		enforcer: enforcer,
