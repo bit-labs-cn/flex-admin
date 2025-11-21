@@ -12,7 +12,7 @@ type Role struct {
 	Code   string `gorm:"comment:角色编码" json:"code"`
 	Remark string `gorm:"comment:角色描述" json:"remark"`
 
-	Menus []Menu `gorm:"many2many:role_menu;joinForeignKey:role_id;References:id;JoinReferences:menu_id" json:"menus"`
+	Menus []Menu `gorm:"many2many:admin_role_menu;joinForeignKey:role_id;References:id;JoinReferences:menu_id" json:"menus"`
 }
 
 func (i *Role) TableName() string {

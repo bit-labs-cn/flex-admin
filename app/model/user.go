@@ -22,8 +22,8 @@ type User struct {
 	Source     string     `gorm:"comment:用户来源" json:"source"`
 	SourceID   string     `gorm:"comment:第三方用户唯一标识" json:"sourceID"`
 
-	Roles []Role `gorm:"many2many:user_role;joinForeignKey:user_id;References:id;JoinReferences:role_id" json:"roles"`
-	Menus []Menu `gorm:"many2many:user_menu;joinForeignKey:user_id;References:id;JoinReferences:menu_id" json:"menus"`
+	Roles []Role `gorm:"many2many:admin_user_role;joinForeignKey:user_id;References:id;JoinReferences:role_id" json:"roles"`
+	Menus []Menu `gorm:"many2many:admin_user_menu;joinForeignKey:user_id;References:id;JoinReferences:menu_id" json:"menus"`
 
 	Permissions  []string `json:"permissions" gorm:"-"`
 	IsSuperAdmin bool     `json:"isSuperAdmin" gorm:"-"`
