@@ -28,7 +28,6 @@ func (i ApiHandle) ModuleName() (en string, zh string) {
 //	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
 //	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
 //	@Router			/api/v1/api [GET]
-//	@Access			router.AccessAuthorized
 
 func (i ApiHandle) GetAll(c *gin.Context) {
 

@@ -70,12 +70,12 @@ func (i DeptHandle) Update(ctx *gin.Context) {
 //	@Description	根据部门ID删除指定部门
 //	@Tags			部门管理
 //	@Router			/api/v1/dept/{id} [DELETE]
-//	@Access			AccessAuthorized
-//	@Name			删除部门
-//	@Param			id	path		int					true	"部门ID"
-//	@Success		200	{object}	router.RouterInfo	"部门删除成功"
-//	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
-//	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+
+// @Name			删除部门
+// @Param			id	path		int					true	"部门ID"
+// @Success		200	{object}	router.RouterInfo	"部门删除成功"
+// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
+// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
 func (i DeptHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.deptSvc.DeleteDept(id)
@@ -88,11 +88,11 @@ func (i DeptHandle) Delete(ctx *gin.Context) {
 //	@Description	获取所有部门的列表信息
 //	@Tags			部门管理
 //	@Router			/api/v1/dept [GET]
-//	@Access			AccessAuthorized
-//	@Name			获取部门列表
-//	@Success		200	{object}	router.RouterInfo	"部门列表获取成功"
-//	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
-//	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+
+// @Name			获取部门列表
+// @Success		200	{object}	router.RouterInfo	"部门列表获取成功"
+// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
+// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
 func (i DeptHandle) Retrieve(ctx *gin.Context) {
 	_, list, err := i.deptSvc.RetrieveDepts()
 	router.Auto(ctx, list, err)

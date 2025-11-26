@@ -96,7 +96,7 @@ func NewOauthHandle(
 //	@Description	通过第三方平台（GitHub、Google、Gitee）进行OAuth登录
 //	@Tags			OAuth认证
 //	@Router			/oauth/{provider}/login [GET]
-//	@Access			AccessPublic
+
 //	@Name			第三方登录
 //	@Param			provider	path	string	true	"第三方平台"	Enums(github,google,gitee)
 //	@Param			state		query	string	false	"状态参数"
@@ -130,7 +130,7 @@ func getOAuthConfig(provider string) *oauth2.Config {
 //	@Description	处理第三方平台的OAuth授权回调，完成用户登录
 //	@Tags			OAuth认证
 //	@Router			/oauth/{provider}/callback [GET]
-//	@Access			AccessPublic
+
 //	@Name			第三方授权回调
 //	@Param			provider	path		string	true	"第三方平台"	Enums(github,google,gitee)
 //	@Param			code		query		string	true	"授权码"

@@ -42,8 +42,8 @@ func NewRoleHandle(roleService *service.RoleService, roleRepository repository.R
 //	@Failure		400				{object}	router.RouterInfo		"请求参数错误"
 //	@Failure		500				{object}	router.RouterInfo		"服务器内部错误"
 //	@Router			/api/v1/role [POST]
-//	@Access			AccessAuthorized
-//	@Permission		admin:role:create
+
+// @Permission		admin:role:create
 func (i *RoleHandle) Create(ctx *gin.Context) {
 	req := new(service.CreateRoleReq)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -69,13 +69,13 @@ func (i *RoleHandle) Detail(ctx *gin.Context) {
 //	@Description	根据角色ID更新角色信息
 //	@Tags			角色管理
 //	@Router			/api/v1/role/{id} [PUT]
-//	@Access			AccessAuthorized
-//	@Name			更新角色
-//	@Param			id				path		int						true	"角色ID"
-//	@Param			updateRoleReq	body		service.UpdateRoleReq	true	"角色更新请求参数"
-//	@Success		200				{object}	router.RouterInfo		"角色更新成功"
-//	@Failure		400				{object}	router.RouterInfo		"请求参数错误"
-//	@Failure		500				{object}	router.RouterInfo		"服务器内部错误"
+
+// @Name			更新角色
+// @Param			id				path		int						true	"角色ID"
+// @Param			updateRoleReq	body		service.UpdateRoleReq	true	"角色更新请求参数"
+// @Success		200				{object}	router.RouterInfo		"角色更新成功"
+// @Failure		400				{object}	router.RouterInfo		"请求参数错误"
+// @Failure		500				{object}	router.RouterInfo		"服务器内部错误"
 func (i *RoleHandle) Update(ctx *gin.Context) {
 	req := new(service.UpdateRoleReq)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -100,12 +100,12 @@ func (i *RoleHandle) Update(ctx *gin.Context) {
 //	@Description	根据角色ID删除指定角色
 //	@Tags			角色管理
 //	@Router			/api/v1/role/{id} [DELETE]
-//	@Access			AccessAuthorized
-//	@Name			删除角色
-//	@Param			id	path		int					true	"角色ID"
-//	@Success		200	{object}	router.RouterInfo	"角色删除成功"
-//	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
-//	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+
+// @Name			删除角色
+// @Param			id	path		int					true	"角色ID"
+// @Success		200	{object}	router.RouterInfo	"角色删除成功"
+// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
+// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
 func (i *RoleHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.roleService.DeleteRole(id)
@@ -118,14 +118,14 @@ func (i *RoleHandle) Delete(ctx *gin.Context) {
 //	@Description	分页获取角色列表，支持搜索和筛选
 //	@Tags			角色管理
 //	@Router			/api/v1/role [GET]
-//	@Access			AccessAuthorized
-//	@Name			获取角色列表
-//	@Param			page		query		int										false	"页码"	default(1)
-//	@Param			pageSize	query		int										false	"每页数量"	default(10)
-//	@Param			keyword		query		string									false	"搜索关键词"
-//	@Success		200			{object}	router.RouterInfo{list=[]model.Role}	"角色列表获取成功"
-//	@Failure		400			{object}	router.RouterInfo						"请求参数错误"
-//	@Failure		500			{object}	router.RouterInfo						"服务器内部错误"
+
+// @Name			获取角色列表
+// @Param			page		query		int										false	"页码"	default(1)
+// @Param			pageSize	query		int										false	"每页数量"	default(10)
+// @Param			keyword		query		string									false	"搜索关键词"
+// @Success		200			{object}	router.RouterInfo{list=[]model.Role}	"角色列表获取成功"
+// @Failure		400			{object}	router.RouterInfo						"请求参数错误"
+// @Failure		500			{object}	router.RouterInfo						"服务器内部错误"
 func (i *RoleHandle) Retrieve(ctx *gin.Context) {
 	req := service.RetrieveRoleReq{
 		PageReq: contract.PageReq{
@@ -148,13 +148,13 @@ func (i *RoleHandle) Retrieve(ctx *gin.Context) {
 //	@Description	为指定角色分配菜单权限
 //	@Tags			角色管理
 //	@Router			/api/v1/role/{id}/menus [POST]
-//	@Access			AccessAuthorized
-//	@Name			分配菜单给角色
-//	@Param			id				path		int							true	"角色ID"
-//	@Param			assignMenuReq	body		service.AssignMenuToRole	true	"菜单分配请求参数"
-//	@Success		200				{object}	router.RouterInfo			"菜单分配成功"
-//	@Failure		400				{object}	router.RouterInfo			"请求参数错误"
-//	@Failure		500				{object}	router.RouterInfo			"服务器内部错误"
+
+// @Name			分配菜单给角色
+// @Param			id				path		int							true	"角色ID"
+// @Param			assignMenuReq	body		service.AssignMenuToRole	true	"菜单分配请求参数"
+// @Success		200				{object}	router.RouterInfo			"菜单分配成功"
+// @Failure		400				{object}	router.RouterInfo			"请求参数错误"
+// @Failure		500				{object}	router.RouterInfo			"服务器内部错误"
 func (i *RoleHandle) AssignMenusToRole(ctx *gin.Context) {
 	req := new(service.AssignMenuToRole)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -172,12 +172,12 @@ func (i *RoleHandle) AssignMenusToRole(ctx *gin.Context) {
 //	@Description	获取指定角色拥有的菜单ID列表
 //	@Tags			角色管理
 //	@Router			/api/v1/role/{id}/menus [GET]
-//	@Access			AccessAuthorized
-//	@Name			获取角色菜单ID列表
-//	@Param			id	path		string							true	"角色ID"
-//	@Success		200	{object}	router.RouterInfo{data=[]int}	"角色菜单ID列表获取成功"
-//	@Failure		400	{object}	router.RouterInfo				"请求参数错误"
-//	@Failure		500	{object}	router.RouterInfo				"服务器内部错误"
+
+// @Name			获取角色菜单ID列表
+// @Param			id	path		string							true	"角色ID"
+// @Success		200	{object}	router.RouterInfo{data=[]int}	"角色菜单ID列表获取成功"
+// @Failure		400	{object}	router.RouterInfo				"请求参数错误"
+// @Failure		500	{object}	router.RouterInfo				"服务器内部错误"
 func (i *RoleHandle) GetRoleMenuIDs(ctx *gin.Context) {
 	id := ctx.Param("id")
 	menuIds := i.roleService.WithContext(ctx).GetRolesMenuIDs(id)
@@ -191,11 +191,11 @@ func (i *RoleHandle) GetRoleMenuIDs(ctx *gin.Context) {
 //	@Description	获取所有角色的简单信息，用于下拉选择等场景
 //	@Tags			角色管理
 //	@Router			/api/v1/role/options [GET]
-//	@Access			AccessAuthorized
-//	@Name			获取角色选项
-//	@Success		200	{object}	router.RouterInfo	"角色选项获取成功"
-//	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
-//	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+
+// @Name			获取角色选项
+// @Success		200	{object}	router.RouterInfo	"角色选项获取成功"
+// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
+// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
 func (i *RoleHandle) RoleOptions(ctx *gin.Context) {
 	x, err := i.roleRepo.Options()
 	if err != nil {
@@ -215,7 +215,7 @@ func (i *RoleHandle) RoleOptions(ctx *gin.Context) {
 // @Failure		400				{object}	router.RouterInfo	"请求参数错误"
 // @Failure		500				{object}	router.RouterInfo	"服务器内部错误"
 // @Router			/api/v1/role/{id}/status [PUT]
-// @Access			AccessAuthorized
+
 // @Permissions	PermissionAdminUserCreate
 func (i *RoleHandle) ChangeStatus(ctx *gin.Context) {
 

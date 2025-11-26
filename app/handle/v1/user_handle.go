@@ -37,13 +37,13 @@ func NewUserHandle(userService *service.UserService, roleService *service.RoleSe
 //	@Description	创建一个新的用户账户，需要提供用户名、邮箱等基本信息
 //	@Tags			用户管理
 //	@Router			/api/v1/users [POST]
-//	@Access			AccessAuthorized
-//	@Permission		admin:user:create
-//	@Name			创建用户
-//	@Param			request	body		service.CreateUserReq	true	"用户创建请求"
-//	@Success		200		{object}	router.RouterInfo		"用户创建成功"
-//	@Failure		400		{object}	router.RouterInfo		"请求参数错误"
-//	@Failure		500		{object}	router.RouterInfo		"服务器内部错误"
+
+// @Permission		admin:user:create
+// @Name			创建用户
+// @Param			request	body		service.CreateUserReq	true	"用户创建请求"
+// @Success		200		{object}	router.RouterInfo		"用户创建成功"
+// @Failure		400		{object}	router.RouterInfo		"请求参数错误"
+// @Failure		500		{object}	router.RouterInfo		"服务器内部错误"
 func (i *UserHandle) Create(ctx *gin.Context) {
 	req := new(service.CreateUserReq)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -61,12 +61,12 @@ func (i *UserHandle) Create(ctx *gin.Context) {
 //	@Description	根据用户ID删除指定用户
 //	@Tags			用户管理
 //	@Router			/api/v1/users/{id} [DELETE]
-//	@Access			AccessAuthorized
-//	@Name			删除用户
-//	@Param			id	path		int					true	"用户ID"
-//	@Success		200	{object}	router.RouterInfo	"用户删除成功"
-//	@Failure		400	{object}	router.RouterInfo	"请求参数错误"
-//	@Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+
+// @Name			删除用户
+// @Param			id	path		int					true	"用户ID"
+// @Success		200	{object}	router.RouterInfo	"用户删除成功"
+// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
+// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
 func (i *UserHandle) Delete(ctx *gin.Context) {
 
 	id := cast.ToUint(ctx.Param("id"))
@@ -123,14 +123,14 @@ func (i *UserHandle) ChangeStatus(ctx *gin.Context) {
 //	@Description	分页获取用户列表，支持搜索和筛选
 //	@Tags			用户管理
 //	@Router			/api/v1/users [GET]
-//	@Access			AccessAuthorized
-//	@Name			获取用户列表
-//	@Param			page		query		int										false	"页码"	default(1)
-//	@Param			pageSize	query		int										false	"每页数量"	default(10)
-//	@Param			keyword		query		string									false	"搜索关键词"
-//	@Success		200			{object}	router.RouterInfo{list=[]model.User}	"用户列表获取成功"
-//	@Failure		400			{object}	router.RouterInfo						"请求参数错误"
-//	@Failure		500			{object}	router.RouterInfo						"服务器内部错误"
+
+// @Name			获取用户列表
+// @Param			page		query		int										false	"页码"	default(1)
+// @Param			pageSize	query		int										false	"每页数量"	default(10)
+// @Param			keyword		query		string									false	"搜索关键词"
+// @Success		200			{object}	router.RouterInfo{list=[]model.User}	"用户列表获取成功"
+// @Failure		400			{object}	router.RouterInfo						"请求参数错误"
+// @Failure		500			{object}	router.RouterInfo						"服务器内部错误"
 func (i *UserHandle) Retrieve(ctx *gin.Context) {
 
 	req := &service.RetrieveUserReq{
