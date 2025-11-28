@@ -10,11 +10,11 @@ import (
 type User struct {
 	Base
 	Avatar     string     `gorm:"comment:用户头像" json:"avatar"`
-	Username   string     `gorm:"comment:用户名称" json:"username"`
-	Nickname   string     `gorm:"comment:用户昵称" json:"nickname"`
+	Username   string     `gorm:"comment:用户名称;type:string;size:512" json:"username"`
+	Nickname   string     `gorm:"comment:用户昵称;type:string;size:128" json:"nickname"`
 	Password   string     `gorm:"comment:用户密码" json:"-"`
 	Remark     string     `gorm:"comment:remark" json:"remark"`
-	Phone      string     `gorm:"comment:手机" json:"phone"`
+	Phone      string     `gorm:"comment:手机;type:string;size:32" json:"phone"`
 	Email      string     `gorm:"comment:邮箱" json:"email"`
 	Status     int        `gorm:"comment:状态" json:"status"`
 	Sex        int        `gorm:"comment:性别" json:"sex"`

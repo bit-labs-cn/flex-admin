@@ -67,22 +67,6 @@ func initDictDataWithTx(tx *gorm.DB) error {
 			Desc:   "用户在线状态",
 			Sort:   3,
 		},
-		{
-			Base:   model.Base{ID: 4},
-			Name:   "审核状态",
-			Type:   "audit_status",
-			Status: 1,
-			Desc:   "审核流程状态",
-			Sort:   4,
-		},
-		{
-			Base:   model.Base{ID: 5},
-			Name:   "数据状态",
-			Type:   "data_status",
-			Status: 1,
-			Desc:   "数据记录状态",
-			Sort:   5,
-		},
 	}
 
 	// 逐个检查并创建字典数据，避免重复插入
@@ -128,7 +112,7 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		},
 		{
 			Label:    "未知",
-			Value:    "0",
+			Value:    "3",
 			Extend:   "",
 			Status:   1,
 			Sort:     3,
@@ -148,7 +132,7 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		},
 		{
 			Label:    "禁用",
-			Value:    "0",
+			Value:    "2",
 			Extend:   "danger",
 			Status:   1,
 			Sort:     2,
@@ -157,7 +141,7 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		},
 		{
 			Label:    "待审核",
-			Value:    "2",
+			Value:    "3",
 			Extend:   "warning",
 			Status:   1,
 			Sort:     3,
@@ -177,7 +161,7 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		},
 		{
 			Label:    "离线",
-			Value:    "0",
+			Value:    "2",
 			Extend:   "info",
 			Status:   1,
 			Sort:     2,
@@ -186,7 +170,7 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		},
 		{
 			Label:    "忙碌",
-			Value:    "2",
+			Value:    "3",
 			Extend:   "warning",
 			Status:   1,
 			Sort:     3,
@@ -195,99 +179,12 @@ func initDictItemDataWithTx(tx *gorm.DB) error {
 		},
 		{
 			Label:    "隐身",
-			Value:    "3",
+			Value:    "4",
 			Extend:   "default",
 			Status:   1,
 			Sort:     4,
 			DictType: "online_status",
 			DictID:   3,
-		},
-
-		// 审核状态字典项 (DictID: 4)
-		{
-			Label:    "待审核",
-			Value:    "0",
-			Extend:   "warning",
-			Status:   1,
-			Sort:     1,
-			DictType: "audit_status",
-			DictID:   4,
-		},
-		{
-			Label:    "审核通过",
-			Value:    "1",
-			Extend:   "success",
-			Status:   1,
-			Sort:     2,
-			DictType: "audit_status",
-			DictID:   4,
-		},
-		{
-			Label:    "审核拒绝",
-			Value:    "2",
-			Extend:   "danger",
-			Status:   1,
-			Sort:     3,
-			DictType: "audit_status",
-			DictID:   4,
-		},
-
-		// 数据状态字典项 (DictID: 5)
-		{
-			Label:    "启用",
-			Value:    "1",
-			Extend:   "success",
-			Status:   1,
-			Sort:     1,
-			DictType: "data_status",
-			DictID:   5,
-		},
-		{
-			Label:    "禁用",
-			Value:    "0",
-			Extend:   "danger",
-			Status:   1,
-			Sort:     2,
-			DictType: "data_status",
-			DictID:   5,
-		},
-
-		// 消息类型字典项 (DictID: 6)
-		{
-			Label:    "系统通知",
-			Value:    "system",
-			Extend:   "info",
-			Status:   1,
-			Sort:     1,
-			DictType: "message_type",
-			DictID:   6,
-		},
-		{
-			Label:    "用户消息",
-			Value:    "user",
-			Extend:   "primary",
-			Status:   1,
-			Sort:     2,
-			DictType: "message_type",
-			DictID:   6,
-		},
-		{
-			Label:    "警告消息",
-			Value:    "warning",
-			Extend:   "warning",
-			Status:   1,
-			Sort:     3,
-			DictType: "message_type",
-			DictID:   6,
-		},
-		{
-			Label:    "错误消息",
-			Value:    "error",
-			Extend:   "danger",
-			Status:   1,
-			Sort:     4,
-			DictType: "message_type",
-			DictID:   6,
 		},
 	}
 

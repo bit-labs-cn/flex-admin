@@ -3,7 +3,7 @@ package model
 import "bit-labs.cn/owl/provider/router"
 
 type Api struct {
-	Base
+	Base        `swaggerignore:"true"`
 	Name        string             `json:"name"`
 	Code        string             `json:"code"`
 	Path        string             `gorm:"comment:api路径" json:"path"`

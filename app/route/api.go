@@ -5,6 +5,7 @@ import (
 	v1 "bit-labs.cn/flex-admin/app/handle/v1"
 	middleware2 "bit-labs.cn/flex-admin/app/middleware"
 	"bit-labs.cn/flex-admin/app/provider/jwt"
+	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"
@@ -13,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu *router.Menu
+var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu, positionMenu, monitorMenu *router.Menu
 
 func InitMenu() *router.Menu {
 	return &router.Menu{
@@ -28,9 +29,11 @@ func InitMenu() *router.Menu {
 			userMenu,
 			roleMenu,
 			deptMenu,
+			positionMenu,
 			menuMenu,
 			apiMenu,
 			dictMenu,
+			monitorMenu,
 		},
 	}
 }
@@ -44,14 +47,18 @@ func InitApi(app foundation.Application, appName string) {
 		menuHandle *v1.MenuHandle,
 		dictHandle *v1.DictHandle,
 		deptHandle *v1.DeptHandle,
+		positionHandle *v1.PositionHandle,
+		logHandle *v1.LogHandle,
 		enforcer casbin.IEnforcer,
 		oauthHandle *oauth.Handle,
 		engine *gin.Engine,
-		service *jwt.JWTService,
+		jwtSvc *jwt.JWTService,
+		logService *service.LogService,
 		log log.Logger,
 	) {
 
-		gv1 := engine.Group("/api/v1", middleware2.PermissionCheck(enforcer, service))
+		gv1 := engine.Group("/api/v1", middleware2.PermissionCheck(enforcer, jwtSvc))
+		gv1.Use(middleware2.OperationLog(logService))
 
 		// user
 		{
@@ -85,7 +92,7 @@ func InitApi(app foundation.Application, appName string) {
 			).Name("分页获取用户").Build()
 
 			r.Get("/users/:id", router.AccessAuthorized, userHandle.Detail).Name("获取用户详情").Build()
-			r.Put("/users/:id/reset", router.AccessAuthorized, userHandle.ResetPassword).Name("重置用户密码").Build()
+			r.Put("/users/:id/reset", router.AccessSuperAdmin, userHandle.ResetPassword).Name("重置用户密码").Build()
 
 			r.Post("/users/:id/roles", router.AccessAuthorized, userHandle.AssignRolesToUser).Deps(
 				[]router.Dep{
@@ -189,6 +196,35 @@ func InitApi(app foundation.Application, appName string) {
 			r.Get("/dept/:id/users", router.AccessAuthorized, roleHandle.GetRoleMenuIDs).Name("获取部门下的用户").Build()
 
 			deptMenu = r.GetMenu()
+		}
+
+		// position
+		{
+			r := router.NewRouteInfoBuilder(appName, positionHandle, gv1, router.MenuOption{
+				ComponentName: "SystemPosition",
+				Path:          "/system/position/index",
+				Icon:          "ep:user",
+			})
+
+			r.Post("/position", router.AccessAuthorized, positionHandle.Create).Name("创建岗位").Build()
+			r.Delete("/position/:id", router.AccessAuthorized, positionHandle.Delete).Name("删除岗位").Build()
+			r.Put("/position/:id", router.AccessAuthorized, positionHandle.Update).Name("更新岗位").Build()
+			r.Put("/position/:id/status", router.AccessAuthorized, positionHandle.ChangeStatus).Name("修改岗位状态").Build()
+			r.Get("/position", router.AccessAuthorized, positionHandle.Retrieve).Name("岗位列表").Build()
+			r.Get("/position-options", router.AccessAuthenticated, positionHandle.Options).Name("所有岗位(id,name)").Build()
+
+			positionMenu = r.GetMenu()
+		}
+		// monitor
+		{
+			r := router.NewRouteInfoBuilder(appName, logHandle, gv1, router.MenuOption{
+				ComponentName: "SystemMonitor",
+				Path:          "/system/monitor/index",
+				Icon:          "ep:monitor",
+			})
+			r.Get("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").Build()
+			r.Get("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").Build()
+			monitorMenu = r.GetMenu()
 		}
 		// oauth
 

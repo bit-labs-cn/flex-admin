@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 
+	"github.com/spf13/cast"
+
 	"bit-labs.cn/flex-admin/app/event"
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/provider/jwt"
 	"bit-labs.cn/flex-admin/app/repository"
-	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/router"
@@ -23,21 +24,21 @@ var (
 )
 
 type UserBatchFields struct {
-	Username string `json:"username"`
-	NickName string `json:"nickName"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Remark   string `json:"remark"`
-	Status   int    `json:"status"`
-	Sex      *int   `json:"sex"`
-	Source   string `json:"source"`
-	SourceID string `json:"sourceID"`
+	Username string `json:"username" validate:"required,min=3,max=32"`
+	NickName string `json:"nickName" validate:"omitempty,max=32"`
+	Email    string `json:"email" validate:"omitempty,email"`
+	Phone    string `json:"phone" validate:"omitempty,numeric"`
+	Remark   string `json:"remark" validate:"omitempty,max=255"`
+	Status   int    `json:"status" validate:"omitempty,oneof=0 1"`
+	Sex      int    `json:"sex" validate:"omitempty,oneof=1 2 3"`
+	Source   string `json:"source" validate:"omitempty,max=32"`
+	SourceID string `json:"sourceId" validate:"omitempty,max=64"`
 }
 
 // CreateUserReq 创建用户
 type CreateUserReq struct {
 	UserBatchFields
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required,min=6,max=64"`
 }
 
 type UpdateUserReq struct {
@@ -46,13 +47,13 @@ type UpdateUserReq struct {
 }
 
 type RetrieveUserReq struct {
-	contract.PageReq
-	Keyword string `json:"keyword"`
+	router.PageReq
+	Keyword string `json:"keyword" validate:"omitempty,max=64"`
 }
 
 type LoginReq struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type LoginResp struct {
@@ -61,9 +62,15 @@ type LoginResp struct {
 }
 
 type ChangePasswordReq struct {
-	UserID      uint   `json:"userID,string"`
-	OldPassword string `json:"oldPassword" binding:"required"`
-	NewPassword string `json:"newPassword" binding:"required"`
+	UserID      uint   `json:"userId,string"`
+	OldPassword string `json:"oldPassword" validate:"required,min=6,max=64"`
+	NewPassword string `json:"newPassword" validate:"required,min=6,max=64"`
+}
+
+// ResetPasswordReq 超管重置用户密码
+type ResetPasswordReq struct {
+	UserID      uint   `json:"userId,string" validate:"required"`
+	NewPassword string `json:"newPassword" validate:"required,min=6,max=64"`
 }
 
 type AssignPermissionReq struct {
@@ -73,13 +80,13 @@ type AssignPermissionReq struct {
 
 // AssignMenuToUser 分配菜单给用户
 type AssignMenuToUser struct {
-	UserID  uint     `json:"userID,string"` // 用户id
-	MenuIDs []string `json:"menuIDs"`       // 菜单列表
+	UserID  uint     `json:"userId,string"` // 用户id
+	MenuIDs []string `json:"menuIds"`       // 菜单列表
 }
 
 type AssignRolesReq struct {
-	UserID  uint   `json:"userID,string"` // 用户id
-	RoleIDs []uint `json:"roleIDs"`       // 角色ids
+	UserID  uint   `json:"userId,string"` // 用户id
+	RoleIDs []uint `json:"roleIds"`       // 角色ids
 }
 
 type UserService struct {
@@ -236,9 +243,19 @@ func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
 	return i.userRepo.Save(user)
 }
 
+// ResetUserPassword 超管重置用户密码（不校验旧密码）
+func (i *UserService) ResetUserPassword(req *ResetPasswordReq) error {
+	user, err := i.userRepo.FindById(req.UserID)
+	if err != nil {
+		return err
+	}
+	user.Password = utils.BcryptHash(req.NewPassword)
+	return i.userRepo.Save(user)
+}
+
 type ChangeAvatarReq struct {
-	UserID uint   `json:"userID,string"`
-	Avatar string `json:"avatar"`
+	UserID uint   `json:"userId,string"`
+	Avatar string `json:"avatar" binding:"required,url"`
 }
 
 // ChangeUserAvatar 修改用户头像
@@ -253,11 +270,13 @@ func (i *UserService) ChangeUserAvatar(req *ChangeAvatarReq) error {
 }
 
 // RetrieveUsers 获取用户列表
-func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int64, list []model.User, err error) {
-	return i.userRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int, list []model.User, err error) {
+	c, u, e := i.userRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Preload("Roles")
 	})
+
+	return cast.ToInt(c), u, e
 }
 
 // CreateUser 创建用户

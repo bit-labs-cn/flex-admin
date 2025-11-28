@@ -2,11 +2,11 @@ package model
 
 type Dict struct {
 	Base
-	Name   string `json:"name"  gorm:"column:name;comment:字典名（中）"`        // 字典名（中）
-	Type   string `json:"type"  gorm:"column:type;comment:字典名（英）"`        // 字典名（英）
-	Status uint8  `json:"status,string"  gorm:"column:status;comment:状态"` // 状态
-	Desc   string `json:"desc"  gorm:"column:desc;comment:描述"`            // 描述
-	Sort   uint8  `json:"sort,string"  gorm:"column:sort;comment:排序"`     // 排序
+	Name   string `gorm:"column:name;comment:字典名（中）" json:"name"`
+	Type   string `gorm:"column:type;comment:字典名（英）" json:"type"`
+	Status uint8  `gorm:"column:status;comment:状态" json:"status,string"`
+	Desc   string `gorm:"column:desc;comment:描述" json:"desc"`
+	Sort   uint8  `gorm:"column:sort;comment:排序" json:"sort,string"`
 }
 
 func (i Dict) TableName() string {
@@ -15,13 +15,13 @@ func (i Dict) TableName() string {
 
 type DictItem struct {
 	Base
-	Label    string `json:"label"  gorm:"column:label;comment:展示值"`            // 展示值
-	Value    string `json:"value"  gorm:"column:value;comment:字典值"`            // 字典值
-	Extend   string `json:"extend"  gorm:"column:extend;comment:扩展值"`          // 扩展值(分组)
-	Status   uint8  `json:"status,string"  gorm:"column:status;comment:启用状态"`  // 启用状态
-	Sort     uint   `json:"sort,string"  gorm:"column:sort;comment:排序标记"`      // 排序标记
-	DictType string `json:"dictType"  gorm:"column:dict_type;comment:冗余"`      // 冗余
-	DictID   uint   `json:"dictID,string"  gorm:"column:dict_id;comment:关联标记"` // 关联标记
+	Label    string `gorm:"column:label;comment:展示值" json:"label"`
+	Value    string `gorm:"column:value;comment:字典值" json:"value"`
+	Extend   string `gorm:"column:extend;comment:扩展值" json:"extend"`
+	Status   uint8  `gorm:"column:status;comment:启用状态" json:"status,string"`
+	Sort     uint   `gorm:"column:sort;comment:排序标记" json:"sort,string"`
+	DictType string `gorm:"column:dict_type;comment:冗余" json:"dictType"`
+	DictID   uint   `gorm:"column:dict_id;comment:关联标记" json:"dictID,string"`
 }
 
 func (i *DictItem) TableName() string {

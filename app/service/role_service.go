@@ -6,7 +6,6 @@ import (
 	"bit-labs.cn/flex-admin/app/event"
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
-	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/router"
@@ -18,34 +17,34 @@ import (
 
 // CreateRoleReq 创建角色
 type CreateRoleReq struct {
-	Name   string `json:"name"`
-	Code   string `json:"code"`
-	Remark string `json:"remark"`
+	Name   string `json:"name" validate:"required,min=2,max=32"`
+	Code   string `json:"code" validate:"required,alphanum,min=2,max=32"`
+	Remark string `json:"remark" validate:"omitempty,max=255"`
 }
 
 // UpdateRoleReq 更新角色
 type UpdateRoleReq struct {
-	ID uint `json:"id,string" binding:"required"`
+	ID uint `json:"id,string" validate:"required"`
 	CreateRoleReq
 }
 
 // AssignMenuToRole 分配菜单给角色, 菜单和按钮权限
 type AssignMenuToRole struct {
-	RoleID  uint     `json:"roleID,string"`
-	MenuIDs []string `json:"menuIds"`
+	RoleID  uint     `json:"roleID,string" validate:"required"`
+	MenuIDs []string `json:"menuIds" validate:"required"`
 }
 
 // AssignRoleToUser 分配角色给用户
 type AssignRoleToUser struct {
-	UserID  uint     `json:"userID"`
-	RoleIDs []string `json:"roleIDs"`
+	UserID  uint     `json:"userID" validate:"required"`
+	RoleIDs []string `json:"roleIDs" validate:"required"`
 }
 
 type RetrieveRoleReq struct {
-	contract.PageReq
-	NameLike string `json:"name"`
-	Code     string `json:"code"`
-	Status   uint8  `json:"status"`
+	router.PageReq
+	NameLike string `json:"nameLike" validate:"omitempty,max=32"`
+	Code     string `json:"code" validate:"omitempty,alphanum,max=32"`
+	Status   uint8  `json:"status" validate:"omitempty,oneof=0 1"`
 }
 
 // RoleService 角色服务

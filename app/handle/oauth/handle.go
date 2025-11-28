@@ -91,23 +91,21 @@ func NewOauthHandle(
 	}
 }
 
-// Login 第三方登录
-//	@Summary		第三方登录
-//	@Description	通过第三方平台（GitHub、Google、Gitee）进行OAuth登录
-//	@Tags			OAuth认证
-//	@Router			/oauth/{provider}/login [GET]
-
-//	@Name			第三方登录
-//	@Param			provider	path	string	true	"第三方平台"	Enums(github,google,gitee)
-//	@Param			state		query	string	false	"状态参数"
-//	@Success		302			"重定向到第三方授权页面"
-
+// @Summary		第三方登录
+// @Description	通过第三方平台（GitHub、Google、Gitee）进行OAuth登录
+// @Tags			OAuth认证
+// @Produce		json
+// @Param			provider	path	string	true	"第三方平台"	Enums(github,google,gitee)
+// @Param			state		query	string	false	"状态参数"
+// @Success		302			"重定向到第三方授权页面"
+// @Failure		400			{object}	router.Resp	"参数错误"
+// @Router			/oauth/{provider}/login [GET]
 func (i *Handle) Login(c *gin.Context) {
 	provider := c.Param("provider")
 	conf := getOAuthConfig(provider)
 	state := c.Query("state")
 	if conf == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported provider"})
+		c.JSON(http.StatusBadRequest, router.Resp{Success: false, Msg: "Unsupported provider"})
 		return
 	}
 	url := conf.AuthCodeURL(state)
@@ -126,30 +124,30 @@ func getOAuthConfig(provider string) *oauth2.Config {
 	}
 }
 
-//	@Summary		第三方授权回调
-//	@Description	处理第三方平台的OAuth授权回调，完成用户登录
-//	@Tags			OAuth认证
-//	@Router			/oauth/{provider}/callback [GET]
-
-//	@Name			第三方授权回调
-//	@Param			provider	path		string	true	"第三方平台"	Enums(github,google,gitee)
-//	@Param			code		query		string	true	"授权码"
-//	@Param			state		query		string	false	"状态参数"
-//	@Success		200			{string}	string	"登录成功页面"
-
+// @Summary		第三方授权回调
+// @Description	处理第三方平台的OAuth授权回调，完成用户登录
+// @Tags			OAuth认证
+// @Produce		json
+// @Param			provider	path		string		true	"第三方平台"	Enums(github,google,gitee)
+// @Param			code		query		string		true	"授权码"
+// @Param			state		query		string		false	"状态参数"
+// @Success		200			{string}	string		"登录成功页面"
+// @Failure		400			{object}	router.Resp	"参数错误"
+// @Failure		500			{object}	router.Resp	"服务器内部错误"
+// @Router			/oauth/{provider}/callback [GET]
 func (i *Handle) Callback(c *gin.Context) {
 	provider := c.Param("provider")
 	state := c.Query("state")
 	conf := getOAuthConfig(provider)
 	if conf == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported provider"})
+		c.JSON(http.StatusBadRequest, router.Resp{Success: false, Msg: "Unsupported provider"})
 		return
 	}
 
 	code := c.Query("code")
 	token, err := conf.Exchange(c, code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token exchange failed", "err": err.Error()})
+		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: "Token exchange failed", Data: err.Error()})
 		return
 	}
 
@@ -168,7 +166,7 @@ func (i *Handle) Callback(c *gin.Context) {
 
 	resp, err := client.Get(userInfoURL)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info"})
+		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: "Failed to get user info"})
 		return
 	}
 	defer resp.Body.Close()
@@ -186,7 +184,7 @@ func (i *Handle) Callback(c *gin.Context) {
 			Phone:    "",
 			Remark:   cast.ToString(user["bio"]),
 			Status:   0,
-			Sex:      nil,
+			Sex:      3,
 			Source:   provider,
 			SourceID: cast.ToString(user["id"]),
 		},
@@ -195,7 +193,7 @@ func (i *Handle) Callback(c *gin.Context) {
 	err = i.userSvc.CreateUser(createUser)
 
 	if err != nil && !errors.Is(err, repository.ErrUserExists) {
-		router.Auto(c, gin.H{}, err)
+		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: err.Error()})
 		return
 	}
 
@@ -238,7 +236,7 @@ func (i *Handle) Callback(c *gin.Context) {
 
 	generateToken, err := i.userSvc.LoginByThirdParty(createUser.Username, provider)
 	if err != nil {
-		router.Auto(c, gin.H{}, err)
+		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: err.Error()})
 		return
 	}
 	i.sio.BroadcastToNamespace("/", state, generateToken.AccessToken)

@@ -20,5 +20,8 @@ func Migrate(db *gorm.DB) {
 		&RoleMenu{},
 		&UserMenu{},
 		&Dept{},
+		&Position{},
+		&LoginLog{},
+		&OperationLog{},
 	)
 }

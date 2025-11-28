@@ -8,8 +8,8 @@ var _ schema.Tabler = (*RoleMenu)(nil)
 type Role struct {
 	Base
 	Status int    `gorm:"comment:角色状态" json:"status"`
-	Name   string `gorm:"comment:角色名称" json:"name"`
-	Code   string `gorm:"comment:角色编码" json:"code"`
+	Name   string `gorm:"comment:角色名称;type:string;size:128" json:"name"`
+	Code   string `gorm:"comment:角色编码;type:string;size:64" json:"code"`
 	Remark string `gorm:"comment:角色描述" json:"remark"`
 
 	Menus []Menu `gorm:"many2many:admin_role_menu;joinForeignKey:role_id;References:id;JoinReferences:menu_id" json:"menus"`

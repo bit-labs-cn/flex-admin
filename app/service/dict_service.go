@@ -3,19 +3,23 @@ package service
 import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
-	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/router"
+	"gorm.io/gorm"
 
 	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
 )
 
 type CreateDictReq struct {
-	model.Dict
+	Name   string `json:"name" validate:"required,max=32"`
+	Type   string `json:"type"`
+	Status uint8  `json:"status,string" validate:"required,min=0,max=1"`
+	Desc   string `json:"desc"`
+	Sort   uint8  `json:"sort,string" validate:"required,min=0,max=255"`
 }
 
 type UpdateDictReq struct {
-	ID uint `json:"id,string"` // 主键
+	ID uint `json:"id,string"`
 	CreateDictReq
 }
 
@@ -53,10 +57,10 @@ func (i DictService) UpdateDict(req *UpdateDictReq) error {
 }
 
 type RetrieveDictReq struct {
-	contract.PageReq
-	NameLike string `json:"name"`   // 名称模糊搜索
-	StatusIn string `json:"status"` // 状态in查询
-	Type     string `json:"type"`   // 类型
+	router.PageReq
+	NameLike string `json:"nameLike" binding:"omitempty,max=64"`
+	StatusIn string `json:"statusIn" binding:"omitempty"`
+	Type     string `json:"type" binding:"omitempty,max=32"`
 }
 
 func (i DictService) RetrieveDicts(req *RetrieveDictReq) (count int64, list []model.Dict, err error) {

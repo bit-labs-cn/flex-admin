@@ -18,11 +18,17 @@ func NewDeptService(deptRepo repository.DeptRepositoryInterface) *DeptService {
 }
 
 type CreateDeptReq struct {
-	model.Dept
+	Name        string `gorm:"comment:部门名称" json:"name" validate:"required,max=64"`
+	ParentId    int    `gorm:"comment:父级部门" json:"parentId,string" validate:"omitempty"`
+	Level       uint   `gorm:"comment:部门层级" json:"level" validate:"omitempty"`
+	Sort        uint   `gorm:"comment:排序" json:"sort" validate:"omitempty"`
+	Status      uint   `gorm:"comment:状态" json:"status" validate:"omitempty,oneof=0 1"`
+	Description string `gorm:"comment:描述" json:"description" binding:"omitempty,max=255"`
 }
 
 type UpdateDeptReq struct {
-	model.Dept
+	ID uint `json:"id,string,omitempty"`
+	CreateDeptReq
 }
 
 // CreateDept 创建部门

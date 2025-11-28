@@ -21,81 +21,89 @@ func (i DeptHandle) ModuleName() (en string, zh string) {
 	return "dept", "部门管理"
 }
 
-//	@Summary		创建部门
-//	@Description	创建新的部门信息
-//	@Tags			部门管理
-//	@Name			创建部门
-//	@Param			createDeptReq	body		service.CreateDeptReq	true	"部门创建请求参数"
-//	@Success		200				{object}	router.RouterInfo		"部门创建成功"
-//	@Failure		400				{object}	router.RouterInfo		"请求参数错误"
-//	@Failure		500				{object}	router.RouterInfo		"服务器内部错误"
-//	@Router			/api/v1/dept [POST]
-
+// @Summary		创建部门
+// @Description	创建一个新的部门
+// @Tags			部门管理
+// @Accept			json
+// @Produce		json
+// @Param			request	body		service.CreateDeptReq	true	"部门创建请求"
+// @Success		200		{object}	router.Resp				"操作成功"
+// @Failure		400		{object}	router.Resp				"参数错误"
+// @Failure		500		{object}	router.Resp				"服务器内部错误"
+// @Router			/api/v1/dept [POST]
 func (i DeptHandle) Create(ctx *gin.Context) {
 	var req service.CreateDeptReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		router.Fail(ctx, "参数绑定失败")
+		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
 
 	err := i.deptSvc.CreateDept(&req)
-	router.Auto(ctx, nil, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-//	@Summary		更新部门
-//	@Description	根据部门ID更新部门信息
-//	@Tags			部门管理
-//	@Name			更新部门
-//	@Param			id				path		int						true	"部门ID"
-//	@Param			updateDeptReq	body		service.UpdateDeptReq	true	"部门更新请求参数"
-//	@Success		200				{object}	router.RouterInfo		"部门更新成功"
-//	@Failure		400				{object}	router.RouterInfo		"请求参数错误"
-//	@Failure		500				{object}	router.RouterInfo		"服务器内部错误"
-//	@Router			/api/v1/dept/:id [PUT]
-
+// @Summary		更新部门
+// @Description	根据部门ID更新部门信息
+// @Tags			部门管理
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int						true	"部门ID"
+// @Param			request	body		service.UpdateDeptReq	true	"部门更新请求"
+// @Success		200		{object}	router.Resp				"操作成功"
+// @Failure		400		{object}	router.Resp				"参数错误"
+// @Failure		500		{object}	router.Resp				"服务器内部错误"
+// @Router			/api/v1/dept/{id} [PUT]
 func (i DeptHandle) Update(ctx *gin.Context) {
 	var req service.UpdateDeptReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		router.Fail(ctx, "参数绑定失败")
+		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
 
 	err := i.deptSvc.UpdateDept(&req)
-	router.Auto(ctx, nil, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-// Delete 删除部门
-//
-//	@Summary		删除部门
-//	@Description	根据部门ID删除指定部门
-//	@Tags			部门管理
-//	@Router			/api/v1/dept/{id} [DELETE]
-
-// @Name			删除部门
-// @Param			id	path		int					true	"部门ID"
-// @Success		200	{object}	router.RouterInfo	"部门删除成功"
-// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
-// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+// @Summary		删除部门
+// @Description	根据部门ID删除部门
+// @Tags			部门管理
+// @Produce		json
+// @Param			id	path		int			true	"部门ID"
+// @Success		200	{object}	router.Resp	"操作成功"
+// @Failure		500	{object}	router.Resp	"服务器内部错误"
+// @Router			/api/v1/dept/{id} [DELETE]
 func (i DeptHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.deptSvc.DeleteDept(id)
-	router.Auto(ctx, nil, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-// Retrieve 获取部门列表
-//
-//	@Summary		获取部门列表
-//	@Description	获取所有部门的列表信息
-//	@Tags			部门管理
-//	@Router			/api/v1/dept [GET]
-
-// @Name			获取部门列表
-// @Success		200	{object}	router.RouterInfo	"部门列表获取成功"
-// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
-// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+// @Summary		获取部门列表
+// @Description	获取所有部门
+// @Tags			部门管理
+// @Produce		json
+// @Success		200	{object}	router.Resp{data=[]model.Dept}	"操作成功"
+// @Failure		500	{object}	router.Resp						"服务器内部错误"
+// @Router			/api/v1/dept [GET]
 func (i DeptHandle) Retrieve(ctx *gin.Context) {
 	_, list, err := i.deptSvc.RetrieveDepts()
-	router.Auto(ctx, list, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, list)
 }
 
 func (i DeptHandle) Detail(ctx *gin.Context) {

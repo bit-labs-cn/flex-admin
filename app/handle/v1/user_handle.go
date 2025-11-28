@@ -3,7 +3,6 @@ package v1
 import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/service"
-	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/router"
 	"github.com/gin-gonic/gin"
@@ -17,204 +16,325 @@ type UserHandle struct {
 	userSvc  *service.UserService
 	roleSvc  *service.RoleService
 	menuRepo *router.MenuRepository
+	logSvc   *service.LogService
 }
 
 func (i *UserHandle) ModuleName() (string, string) {
 	return "user", "用户管理"
 }
 
-func NewUserHandle(userService *service.UserService, roleService *service.RoleService, manager *router.MenuRepository) *UserHandle {
+func NewUserHandle(userService *service.UserService, roleService *service.RoleService, manager *router.MenuRepository, logSvc *service.LogService) *UserHandle {
 	return &UserHandle{
 		userSvc:  userService,
 		roleSvc:  roleService,
 		menuRepo: manager,
+		logSvc:   logSvc,
 	}
 }
 
-// Create 创建用户
-//
-//	@Summary		创建新用户
-//	@Description	创建一个新的用户账户，需要提供用户名、邮箱等基本信息
-//	@Tags			用户管理
-//	@Router			/api/v1/users [POST]
-
-// @Permission		admin:user:create
-// @Name			创建用户
+// @Summary		创建用户
+// @Description	创建一个新的用户账户
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
 // @Param			request	body		service.CreateUserReq	true	"用户创建请求"
-// @Success		200		{object}	router.RouterInfo		"用户创建成功"
-// @Failure		400		{object}	router.RouterInfo		"请求参数错误"
-// @Failure		500		{object}	router.RouterInfo		"服务器内部错误"
+// @Success		200		{object}	router.Resp				"操作成功"
+// @Failure		400		{object}	router.Resp				"参数错误"
+// @Failure		500		{object}	router.Resp				"服务器内部错误"
+// @Router			/api/v1/users [POST]
 func (i *UserHandle) Create(ctx *gin.Context) {
 	req := new(service.CreateUserReq)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"msg": err.Error()})
+		router.BadRequest(ctx, err.Error())
 		return
 	}
 
 	err := i.userSvc.CreateUser(req)
-	router.Auto(ctx, nil, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-// Delete 删除用户
-//
-//	@Summary		删除用户
-//	@Description	根据用户ID删除指定用户
-//	@Tags			用户管理
-//	@Router			/api/v1/users/{id} [DELETE]
-
-// @Name			删除用户
-// @Param			id	path		int					true	"用户ID"
-// @Success		200	{object}	router.RouterInfo	"用户删除成功"
-// @Failure		400	{object}	router.RouterInfo	"请求参数错误"
-// @Failure		500	{object}	router.RouterInfo	"服务器内部错误"
+// @Summary		删除用户
+// @Description	根据用户ID删除用户
+// @Tags			用户管理
+// @Produce		json
+// @Param			id	path		int			true	"用户ID"
+// @Success		200	{object}	router.Resp	"操作成功"
+// @Failure		500	{object}	router.Resp	"服务器内部错误"
+// @Router			/api/v1/users/{id} [DELETE]
 func (i *UserHandle) Delete(ctx *gin.Context) {
 
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.userSvc.DeleteUser(id)
-	router.Auto(ctx, nil, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
 func (i *UserHandle) Detail(ctx *gin.Context) {
 
 }
 
-//	@Summary		更新用户信息
-//	@Description	根据用户ID更新用户的基本信息
-//	@Tags			用户管理
-//	@Name			更新用户
-//	@Param			id		path		int						true	"用户ID"
-//	@Param			request	body		service.UpdateUserReq	true	"用户更新请求"
-//	@Success		200		{object}	router.RouterInfo		"用户更新成功"
-//	@Failure		400		{object}	router.RouterInfo		"请求参数错误"
-//	@Failure		500		{object}	router.RouterInfo		"服务器内部错误"
-//	@Router			/api/v1/users/:id [PUT]
-
+// @Summary		更新用户
+// @Description	根据用户ID更新用户信息
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int						true	"用户ID"
+// @Param			request	body		service.UpdateUserReq	true	"用户更新请求"
+// @Success		200		{object}	router.Resp				"操作成功"
+// @Failure		400		{object}	router.Resp				"参数错误"
+// @Failure		500		{object}	router.Resp				"服务器内部错误"
+// @Router			/api/v1/users/{id} [PUT]
 func (i *UserHandle) Update(ctx *gin.Context) {
 
 	req := new(service.UpdateUserReq)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"msg": err.Error()})
+		router.BadRequest(ctx, err.Error())
 		return
 	}
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
 	err := i.userSvc.UpdateUser(req)
-	router.Auto(ctx, nil, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-// ChangeStatus 修改用户状态
+// @Summary		修改用户状态
+// @Description	启用或禁用指定用户
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int				true	"用户ID"
+// @Param			request	body		db.ChangeStatus	true	"状态修改请求"
+// @Success		200		{object}	router.Resp		"操作成功"
+// @Failure		400		{object}	router.Resp		"参数错误"
+// @Failure		500		{object}	router.Resp		"服务器内部错误"
+// @Router			/api/v1/users/{id}/status [PUT]
 func (i *UserHandle) ChangeStatus(ctx *gin.Context) {
 	req := new(db.ChangeStatus)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"msg": err.Error()})
+		router.BadRequest(ctx, err.Error())
 		return
 	}
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
 	err := i.userSvc.ChangeStatus(req)
-	router.Auto(ctx, nil, err)
-}
-
-// Retrieve 获取用户列表
-//
-//	@Summary		获取用户列表
-//	@Description	分页获取用户列表，支持搜索和筛选
-//	@Tags			用户管理
-//	@Router			/api/v1/users [GET]
-
-// @Name			获取用户列表
-// @Param			page		query		int										false	"页码"	default(1)
-// @Param			pageSize	query		int										false	"每页数量"	default(10)
-// @Param			keyword		query		string									false	"搜索关键词"
-// @Success		200			{object}	router.RouterInfo{list=[]model.User}	"用户列表获取成功"
-// @Failure		400			{object}	router.RouterInfo						"请求参数错误"
-// @Failure		500			{object}	router.RouterInfo						"服务器内部错误"
-func (i *UserHandle) Retrieve(ctx *gin.Context) {
-
-	req := &service.RetrieveUserReq{
-		PageReq: contract.PageReq{
-			Page:     1,
-			PageSize: 10,
-		},
-	}
-	count, list, err := i.userSvc.RetrieveUsers(req)
 	if err != nil {
-		router.Fail(ctx, err.Error())
+		router.InternalError(ctx, err)
 		return
 	}
-	router.Auto(ctx, gin.H{"list": list, "pageSize": req.PageSize, "currentPage": req.Page, "total": count}, err)
+	router.Success(ctx, nil)
 }
 
-// AssignRolesToUser 分配角色给用户
+// @Summary		获取用户列表
+// @Description	分页获取用户列表
+// @Tags			用户管理
+// @Produce		json
+// @Param			page		query		int				false	"页码"
+// @Param			pageSize	query		int				false	"每页数量"
+// @Param			keyword		query		string			false	"搜索关键词"
+// @Success		200			{object}	router.PageResp	"操作成功"
+// @Failure		500			{object}	router.Resp		"服务器内部错误"
+// @Router			/api/v1/users [GET]
+func (i *UserHandle) Retrieve(ctx *gin.Context) {
+	var req service.RetrieveUserReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		router.BadRequest(ctx, "参数绑定失败")
+		return
+	}
+	count, list, err := i.userSvc.RetrieveUsers(&req)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.PageSuccess(ctx, count, req.Page, req.PageSize, list)
+}
+
+// @Summary		分配角色给用户
+// @Description	为指定用户分配角色
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int							true	"用户ID"
+// @Param			request	body		service.AssignRoleToUser	true	"分配角色请求"
+// @Success		200		{object}	router.Resp					"操作成功"
+// @Failure		400		{object}	router.Resp					"参数错误"
+// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Router			/api/v1/users/{id}/roles [POST]
 func (i *UserHandle) AssignRolesToUser(ctx *gin.Context) {
 	req := new(service.AssignRoleToUser)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		router.Auto(ctx, nil, err)
+		router.BadRequest(ctx, err.Error())
 		return
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
-	menuIds := i.userSvc.AssignRoleToUser(req)
-	router.Auto(ctx, menuIds, nil)
+	if err := i.userSvc.AssignRoleToUser(req); err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-// GetRoleIdsByUserId 获取用户角色
+// @Summary		获取用户角色ID列表
+// @Description	查询指定用户的角色ID列表
+// @Tags			用户管理
+// @Produce		json
+// @Param			id	path		int			true	"用户ID"
+// @Success		200	{object}	router.Resp	"操作成功"
+// @Failure		500	{object}	router.Resp	"服务器内部错误"
+// @Router			/api/v1/users/{id}/roles [GET]
 func (i *UserHandle) GetRoleIdsByUserId(ctx *gin.Context) {
 
 	userID := cast.ToUint(ctx.Param("id"))
 	ids, err := i.userSvc.GetUserRoleIDs(userID)
-	router.Auto(ctx, ids, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, ids)
 }
 
-// AssignMenuToUser 分配菜单给用户
+// @Summary		分配菜单/权限给用户
+// @Description	为指定用户分配菜单/权限（按角色关联）
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int							true	"用户ID"
+// @Param			request	body		service.AssignRoleToUser	true	"分配请求"
+// @Success		200		{object}	router.Resp					"操作成功"
+// @Failure		400		{object}	router.Resp					"参数错误"
+// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Router			/api/v1/users/{id}/menus [POST]
 func (i *UserHandle) AssignMenuToUser(ctx *gin.Context) {
 	req := new(service.AssignRoleToUser)
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		router.Auto(ctx, nil, err)
+		router.BadRequest(ctx, err.Error())
 		return
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
-	menuIds := i.userSvc.AssignRoleToUser(req)
-	router.Auto(ctx, menuIds, nil)
+	if err := i.userSvc.AssignRoleToUser(req); err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
-// GetMyMenus 获取用户菜单
+// @Summary		获取当前用户菜单
+// @Description	根据用户角色返回可见菜单列表
+// @Tags			用户管理
+// @Produce		json
+// @Success		200	{object}	router.Resp	"操作成功"
+// @Router			/api/v1/users/me/menus [GET]
 func (i *UserHandle) GetMyMenus(ctx *gin.Context) {
 
 	user, _ := ctx.Get("user")
 	if user.(*model.User).IsSuperAdmin {
-		router.Auto(ctx, i.menuRepo.GetMenuWithoutBtn(), nil)
+		router.Success(ctx, i.menuRepo.GetMenuWithoutBtn())
 		return
 	}
 	menus := i.userSvc.GetUserMenus(user.(*model.User).ID)
-	router.Auto(ctx, menus, nil)
-	return
+	router.Success(ctx, menus)
 }
+
+// @Summary		修改我的密码
+// @Description	用户自行修改密码
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			request	body		service.ChangePasswordReq	true	"修改密码请求"
+// @Success		200		{object}	router.Resp					"操作成功"
+// @Failure		400		{object}	router.Resp					"参数错误"
+// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Router			/api/v1/users/me/password [PUT]
 func (i *UserHandle) ChangePassword(ctx *gin.Context) {
-
+	var req service.ChangePasswordReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		router.BadRequest(ctx, err.Error())
+		return
+	}
+	uVal, _ := ctx.Get("user")
+	user := uVal.(*model.User)
+	req.UserID = user.ID
+	if err := i.userSvc.ChangeUserPassword(&req); err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
+// @Summary		重置用户密码（仅超管）
+// @Description	仅超管可用，直接重置指定用户密码
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int							true	"用户ID"
+// @Param			request	body		service.ResetPasswordReq	true	"重置密码请求"
+// @Success		200		{object}	router.Resp					"操作成功"
+// @Failure		400		{object}	router.Resp					"参数错误"
+// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Router			/api/v1/users/{id}/reset [PUT]
 func (i *UserHandle) ResetPassword(ctx *gin.Context) {
+	var req service.ResetPasswordReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		router.BadRequest(ctx, err.Error())
+		return
+	}
 
+	req.UserID = cast.ToUint(ctx.Param("id"))
+	if err := i.userSvc.ResetUserPassword(&req); err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, nil)
 }
 
+// @Summary		用户登录
+// @Description	使用用户名与密码进行登录
+// @Tags			用户管理
+// @Accept			json
+// @Produce		json
+// @Param			request	body		service.LoginReq	true	"登录请求"
+// @Success		200		{object}	router.Resp			"登录成功"
+// @Failure		400		{object}	router.Resp			"参数错误"
+// @Failure		500		{object}	router.Resp			"服务器内部错误"
+// @Router			/api/v1/users/login [POST]
 func (i *UserHandle) Login(ctx *gin.Context) {
 	var req service.LoginReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"msg": err.Error()})
+		router.BadRequest(ctx, err.Error())
 		return
 	}
 
 	login, err := i.userSvc.Login(&req)
-	router.Auto(ctx, login, err)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	_ = i.logSvc.RecordLogin(ctx, login.User)
+	router.Success(ctx, login)
 }
 func (i *UserHandle) Register(ctx *gin.Context) {
 
 }
 
+// @Summary		获取当前用户信息
+// @Description	返回当前登录用户的基本信息
+// @Tags			用户管理
+// @Produce		json
+// @Success		200	{object}	router.Resp{Data=model.User}	"操作成功"
+// @Router			/api/v1/users/me [GET]
 func (i *UserHandle) Me(ctx *gin.Context) {
 	value, _ := ctx.Get("user")
-
-	router.Auto(ctx, value, nil)
+	router.Success(ctx, value)
 }
