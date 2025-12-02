@@ -11,6 +11,7 @@ import (
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/utils"
 	"github.com/asaskevich/EventBus"
@@ -99,6 +100,7 @@ type UserService struct {
 	userRepo  repository.UserRepositoryInterface
 	eventBus  EventBus.Bus
 	configure *conf.Configure
+	locker    redis.LockerFactory
 }
 
 func NewUserService(
@@ -110,6 +112,7 @@ func NewUserService(
 	configure *conf.Configure,
 	jwtSvc *jwt.JWTService,
 	menuManager *router.MenuRepository,
+	locker redis.LockerFactory,
 ) *UserService {
 	return &UserService{
 		db:             tx,
@@ -121,6 +124,7 @@ func NewUserService(
 		configure:      configure,
 		jwtSvc:         jwtSvc,
 		menuManger:     menuManager,
+		locker:         locker,
 	}
 }
 
@@ -207,6 +211,11 @@ func (i *UserService) GetUserMenus(userID uint) []*router.Menu {
 
 // AssignRoleToUser 分配角色给用户
 func (i *UserService) AssignRoleToUser(req *AssignRoleToUser) error {
+	l := i.locker.New()
+	if err := l.Lock("user:assign-roles:" + cast.ToString(req.UserID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 
 	roles := db.GetModelsByIDs[model.Role](req.RoleIDs)
 
@@ -232,6 +241,11 @@ func (i *UserService) GetUserRoleIDs(id uint) ([]string, error) {
 
 // ChangeUserPassword 修改用户密码
 func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
+	l := i.locker.New()
+	if err := l.Lock("user:change-pwd:" + cast.ToString(req.UserID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	user, err := i.userRepo.FindById(req.UserID)
 	if err != nil {
 		return err
@@ -245,6 +259,11 @@ func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
 
 // ResetUserPassword 超管重置用户密码（不校验旧密码）
 func (i *UserService) ResetUserPassword(req *ResetPasswordReq) error {
+	l := i.locker.New()
+	if err := l.Lock("user:reset-pwd:" + cast.ToString(req.UserID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	user, err := i.userRepo.FindById(req.UserID)
 	if err != nil {
 		return err
@@ -260,6 +279,11 @@ type ChangeAvatarReq struct {
 
 // ChangeUserAvatar 修改用户头像
 func (i *UserService) ChangeUserAvatar(req *ChangeAvatarReq) error {
+	l := i.locker.New()
+	if err := l.Lock("user:avatar:" + cast.ToString(req.UserID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	user, err := i.userRepo.FindById(req.UserID)
 	if err != nil {
 		return err
@@ -281,6 +305,11 @@ func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int, list []mod
 
 // CreateUser 创建用户
 func (i *UserService) CreateUser(req *CreateUserReq) error {
+	l := i.locker.New()
+	if err := l.Lock("user:create"); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	var user model.User
 	err := copier.Copy(&user, req)
 	if err != nil {
@@ -296,6 +325,11 @@ func (i *UserService) CreateUser(req *CreateUserReq) error {
 
 // Register 注册用户
 func (i *UserService) Register(req *model.User) error {
+	l := i.locker.New()
+	if err := l.Lock("user:register"); err != nil {
+		return err
+	}
+	defer l.Unlock()
 
 	var user model.User
 	err := copier.Copy(&user, req)
@@ -308,6 +342,11 @@ func (i *UserService) Register(req *model.User) error {
 
 // UpdateUser 更新用户
 func (i *UserService) UpdateUser(req *UpdateUserReq) error {
+	l := i.locker.New()
+	if err := l.Lock("user:update:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 
 	user, err := i.userRepo.FindById(req.ID)
 	if err != nil {
@@ -324,10 +363,20 @@ func (i *UserService) UpdateUser(req *UpdateUserReq) error {
 
 // ChangeUserStatus 修改用户状态
 func (i *UserService) ChangeUserStatus(req *db.ChangeStatus) error {
+	l := i.locker.New()
+	if err := l.Lock("user:status:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	return i.BaseRepository.ChangeStatus(req)
 }
 
 func (i *UserService) DeleteUser(id uint) error {
+	l := i.locker.New()
+	if err := l.Lock("user:delete:" + cast.ToString(id)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	err := i.BaseRepository.Delete(id)
 	return err
 }

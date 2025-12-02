@@ -4,8 +4,10 @@ import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"github.com/jinzhu/copier"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
@@ -28,14 +30,20 @@ type RetrievePositionReq struct {
 
 type PositionService struct {
 	db.BaseRepository[model.Position]
-	repo repository.PositionRepositoryInterface
+	repo   repository.PositionRepositoryInterface
+	locker redis.LockerFactory
 }
 
-func NewPositionService(repo repository.PositionRepositoryInterface, tx *gorm.DB) *PositionService {
-	return &PositionService{BaseRepository: db.NewBaseRepository[model.Position](tx), repo: repo}
+func NewPositionService(repo repository.PositionRepositoryInterface, tx *gorm.DB, locker redis.LockerFactory) *PositionService {
+	return &PositionService{BaseRepository: db.NewBaseRepository[model.Position](tx), repo: repo, locker: locker}
 }
 
 func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
+	l := i.locker.New()
+	if err := l.Lock("position:create"); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	var m model.Position
 	_ = copier.Copy(&m, req)
 	m.Status = 1
@@ -43,6 +51,11 @@ func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
 }
 
 func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
+	l := i.locker.New()
+	if err := l.Lock("position:update:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	m, err := i.repo.Detail(req.ID)
 	if err != nil {
 		return err
@@ -53,9 +66,21 @@ func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
 	return i.repo.Save(m)
 }
 
-func (i *PositionService) DeletePosition(id uint) error { return i.BaseRepository.Delete(id) }
+func (i *PositionService) DeletePosition(id uint) error {
+	l := i.locker.New()
+	if err := l.Lock("position:delete:" + cast.ToString(id)); err != nil {
+		return err
+	}
+	defer l.Unlock()
+	return i.BaseRepository.Delete(id)
+}
 
 func (i *PositionService) ChangeStatus(req *db.ChangeStatus) error {
+	l := i.locker.New()
+	if err := l.Lock("position:status:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	return i.BaseRepository.ChangeStatus(req)
 }
 

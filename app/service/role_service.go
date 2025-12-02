@@ -8,10 +8,12 @@ import (
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"github.com/asaskevich/EventBus"
 	"github.com/casbin/casbin/v2"
 	"github.com/jinzhu/copier"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
@@ -57,14 +59,16 @@ type RoleService struct {
 	roleRepo repository.RoleRepositoryInterface
 	menuRepo *router.MenuRepository
 	eventbus EventBus.Bus
+	locker   redis.LockerFactory
 }
 
-func NewRoleService(menuManager *router.MenuRepository, roleRepo repository.RoleRepositoryInterface, enforcer casbin.IEnforcer, bus EventBus.Bus) *RoleService {
+func NewRoleService(menuManager *router.MenuRepository, roleRepo repository.RoleRepositoryInterface, enforcer casbin.IEnforcer, bus EventBus.Bus, locker redis.LockerFactory) *RoleService {
 	return &RoleService{
 		menuRepo: menuManager,
 		enforcer: enforcer,
 		roleRepo: roleRepo,
 		eventbus: bus,
+		locker:   locker,
 	}
 }
 func (i *RoleService) WithContext(ctx context.Context) *RoleService {
@@ -72,6 +76,11 @@ func (i *RoleService) WithContext(ctx context.Context) *RoleService {
 	return i
 }
 func (i *RoleService) CreateRole(req *CreateRoleReq) error {
+	l := i.locker.New()
+	if err := l.Lock("role:create"); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	var role model.Role
 	err := copier.Copy(&role, req)
 	if err != nil {
@@ -83,6 +92,11 @@ func (i *RoleService) CreateRole(req *CreateRoleReq) error {
 }
 
 func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
+	l := i.locker.New()
+	if err := l.Lock("role:update:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 
 	role, err := i.roleRepo.Detail(req.ID)
 	if err != nil {
@@ -97,11 +111,21 @@ func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
 
 // ChangeStatus 修改角色状态
 func (i *RoleService) ChangeStatus(req *db.ChangeStatus) error {
+	l := i.locker.New()
+	if err := l.Lock("role:status:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	return i.BaseRepository.ChangeStatus(req)
 }
 
 // DeleteRole 删除角色
 func (i *RoleService) DeleteRole(id uint) error {
+	l := i.locker.New()
+	if err := l.Lock("role:delete:" + cast.ToString(id)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	return i.BaseRepository.Delete(id)
 }
 
@@ -112,6 +136,11 @@ func (i *RoleService) RetrieveRoles(req *RetrieveRoleReq) (count int64, list []m
 }
 
 func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
+	l := i.locker.New()
+	if err := l.Lock("role:assign-menus:" + cast.ToString(req.RoleID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 
 	role, err := i.roleRepo.Detail(req.RoleID)
 	if err != nil {

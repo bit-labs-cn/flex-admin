@@ -3,17 +3,21 @@ package service
 import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
+	"bit-labs.cn/owl/provider/redis"
 	"github.com/jinzhu/copier"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
 type DeptService struct {
 	deptRepo repository.DeptRepositoryInterface
+	locker   redis.LockerFactory
 }
 
-func NewDeptService(deptRepo repository.DeptRepositoryInterface) *DeptService {
+func NewDeptService(deptRepo repository.DeptRepositoryInterface, locker redis.LockerFactory) *DeptService {
 	return &DeptService{
 		deptRepo: deptRepo,
+		locker:   locker,
 	}
 }
 
@@ -34,6 +38,11 @@ type UpdateDeptReq struct {
 // CreateDept 创建部门
 // 就算 CreateDeptReq 直接使用了 model.Dept 作为了结构体，但是也要单独声明 CreateDeptReq 来接收参数，因为这样可扩展性更高
 func (i DeptService) CreateDept(req *CreateDeptReq) error {
+	l := i.locker.New()
+	if err := l.Lock("dept:create"); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	var dept model.Dept
 	err := copier.Copy(&dept, req)
 	if err != nil {
@@ -43,6 +52,11 @@ func (i DeptService) CreateDept(req *CreateDeptReq) error {
 }
 
 func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
+	l := i.locker.New()
+	if err := l.Lock("dept:update:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	var dept model.Dept
 	err := copier.Copy(&dept, req)
 	if err != nil {
@@ -51,6 +65,11 @@ func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
 	return i.deptRepo.Update(&dept)
 }
 func (i DeptService) DeleteDept(id uint) error {
+	l := i.locker.New()
+	if err := l.Lock("dept:delete:" + cast.ToString(id)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	return i.deptRepo.Delete(id)
 }
 

@@ -12,6 +12,7 @@ import (
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/permission"
 	"bit-labs.cn/owl/provider/rabbitmq"
+	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/provider/socketio"
 	"github.com/spf13/cobra"
@@ -47,6 +48,7 @@ func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
 		&db.DBServiceProvider{},
 		&socketio.SocketIOServiceProvider{},
 		&jwt.JwtServiceProvider{},
+		&redis.RedisServiceProvider{},
 		&rabbitmq.RabbitMQServiceProvider{},
 	}
 }

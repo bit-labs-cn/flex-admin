@@ -4,10 +4,13 @@ import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 
 	"github.com/jinzhu/copier"
+	"strings"
 )
 
 type CreateDictReq struct {
@@ -25,14 +28,21 @@ type UpdateDictReq struct {
 
 type DictService struct {
 	dictRepo repository.DictRepositoryInterface
+	locker   redis.LockerFactory
 }
 
-func NewDictService(dictRepo repository.DictRepositoryInterface) *DictService {
+func NewDictService(dictRepo repository.DictRepositoryInterface, locker redis.LockerFactory) *DictService {
 	return &DictService{
 		dictRepo: dictRepo,
+		locker:   locker,
 	}
 }
 func (i DictService) CreateDict(req *CreateDictReq) error {
+	l := i.locker.New()
+	if err := l.Lock("dict:create"); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	dict := new(model.Dict)
 	err := copier.Copy(&dict, req)
 	if err != nil {
@@ -43,6 +53,11 @@ func (i DictService) CreateDict(req *CreateDictReq) error {
 }
 
 func (i DictService) UpdateDict(req *UpdateDictReq) error {
+	l := i.locker.New()
+	if err := l.Lock("dict:update:" + cast.ToString(req.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	dict, err := i.dictRepo.Detail(req.ID)
 	if err != nil {
 		return err
@@ -71,6 +86,11 @@ func (i DictService) RetrieveDicts(req *RetrieveDictReq) (count int64, list []mo
 }
 
 func (i DictService) CreateItem(item *model.DictItem) error {
+	l := i.locker.New()
+	if err := l.Lock("dict:item:create:" + cast.ToString(item.DictID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	_, err := i.dictRepo.Detail(item.DictID)
 	if err != nil {
 		return err
@@ -79,6 +99,11 @@ func (i DictService) CreateItem(item *model.DictItem) error {
 }
 
 func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
+	l := i.locker.New()
+	if err := l.Lock("dict:item:delete:" + cast.ToString(dictID) + ":" + strings.Join(itemIds, ",")); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	_, err := i.dictRepo.Detail(dictID)
 	if err != nil {
 		return err
@@ -86,6 +111,11 @@ func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
 	return i.dictRepo.DeleteItem(itemIds...)
 }
 func (i DictService) UpdateItem(item *model.DictItem) error {
+	l := i.locker.New()
+	if err := l.Lock("dict:item:update:" + cast.ToString(item.DictID) + ":" + cast.ToString(item.ID)); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	_, err := i.dictRepo.Detail(item.DictID)
 	if err != nil {
 		return err
@@ -98,6 +128,11 @@ func (i DictService) RetrieveItems(dictID any) (int64, []model.DictItem, error) 
 }
 
 func (i DictService) DeleteDict(ids ...string) error {
+	l := i.locker.New()
+	if err := l.Lock("dict:delete:" + strings.Join(ids, ",")); err != nil {
+		return err
+	}
+	defer l.Unlock()
 	return i.dictRepo.DeleteDict(ids...)
 }
 
