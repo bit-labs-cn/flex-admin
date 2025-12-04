@@ -1,12 +1,15 @@
 package model
 
-import "gorm.io/gorm/schema"
+import (
+	"bit-labs.cn/owl/provider/db"
+	"gorm.io/gorm/schema"
+)
 
 var _ schema.Tabler = (*Role)(nil)
 var _ schema.Tabler = (*RoleMenu)(nil)
 
 type Role struct {
-	Base
+	db.BaseModel
 	Status int    `gorm:"comment:角色状态" json:"status"`
 	Name   string `gorm:"comment:角色名称;type:string;size:128" json:"name"`
 	Code   string `gorm:"comment:角色编码;type:string;size:64" json:"code"`

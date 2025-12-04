@@ -1,9 +1,12 @@
 package model
 
-import "bit-labs.cn/owl/provider/router"
+import (
+	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/router"
+)
 
 type Api struct {
-	Base        `swaggerignore:"true"`
+	db.BaseModel
 	Name        string             `json:"name"`
 	Code        string             `json:"code"`
 	Path        string             `gorm:"comment:api路径" json:"path"`

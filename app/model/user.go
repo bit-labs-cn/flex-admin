@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bit-labs.cn/owl/provider/db"
 	"errors"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 )
 
 type User struct {
-	Base
+	db.BaseModel
 	Avatar     string     `gorm:"comment:用户头像" json:"avatar"`
 	Username   string     `gorm:"comment:用户名称;type:string;size:512" json:"username"`
 	Nickname   string     `gorm:"comment:用户昵称;type:string;size:128" json:"nickname"`
@@ -59,7 +60,7 @@ func (i *User) GetRoleIDs() []string {
 
 func NewSuperUser() User {
 	return User{
-		Base:         Base{ID: 19941996},
+		BaseModel:    db.BaseModel{ID: 19941996},
 		Username:     "glen",
 		Nickname:     "超级管理员",
 		IsSuperAdmin: true,

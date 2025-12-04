@@ -1,7 +1,9 @@
 package model
 
+import "bit-labs.cn/owl/provider/db"
+
 type Dict struct {
-	Base
+	db.BaseModel
 	Name   string `gorm:"column:name;comment:字典名（中）" json:"name"`
 	Type   string `gorm:"column:type;comment:字典名（英）" json:"type"`
 	Status uint8  `gorm:"column:status;comment:状态" json:"status,string"`
@@ -14,7 +16,7 @@ func (i Dict) TableName() string {
 }
 
 type DictItem struct {
-	Base
+	db.BaseModel
 	Label    string `gorm:"column:label;comment:展示值" json:"label"`
 	Value    string `gorm:"column:value;comment:字典值" json:"value"`
 	Extend   string `gorm:"column:extend;comment:扩展值" json:"extend"`

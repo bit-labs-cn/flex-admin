@@ -1,6 +1,7 @@
 package seeder
 
 import (
+	"bit-labs.cn/owl/provider/db"
 	"errors"
 	"log"
 
@@ -44,28 +45,28 @@ func InitAllDictData(db *gorm.DB) {
 func initDictDataWithTx(tx *gorm.DB) error {
 	var dicts = []model.Dict{
 		{
-			Base:   model.Base{ID: 1},
-			Name:   "性别",
-			Type:   "gender",
-			Status: 1, // 启用状态
-			Desc:   "用户性别分类",
-			Sort:   1,
+			BaseModel: db.BaseModel{ID: 1},
+			Name:      "性别",
+			Type:      "gender",
+			Status:    1, // 启用状态
+			Desc:      "用户性别分类",
+			Sort:      1,
 		},
 		{
-			Base:   model.Base{ID: 2},
-			Name:   "用户状态",
-			Type:   "user_status",
-			Status: 1,
-			Desc:   "用户账号状态",
-			Sort:   2,
+			BaseModel: db.BaseModel{ID: 2},
+			Name:      "用户状态",
+			Type:      "user_status",
+			Status:    1,
+			Desc:      "用户账号状态",
+			Sort:      2,
 		},
 		{
-			Base:   model.Base{ID: 3},
-			Name:   "在线状态",
-			Type:   "online_status",
-			Status: 1,
-			Desc:   "用户在线状态",
-			Sort:   3,
+			BaseModel: db.BaseModel{ID: 3},
+			Name:      "在线状态",
+			Type:      "online_status",
+			Status:    1,
+			Desc:      "用户在线状态",
+			Sort:      3,
 		},
 	}
 
