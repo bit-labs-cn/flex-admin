@@ -7,6 +7,7 @@ type OperationLog struct {
 	UserType  string `json:"userType" gorm:"column:user_type"`
 	Method    string `json:"method" gorm:"column:method"`
 	Path      string `json:"path" gorm:"column:path"`
+	ApiName   string `json:"apiName" gorm:"column:api_name"`
 	Status    int    `json:"status" gorm:"column:status"`
 	CostMs    int    `json:"costMs" gorm:"column:cost_ms"`
 	Ip        string `json:"ip" gorm:"column:ip"`

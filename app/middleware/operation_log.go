@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bit-labs.cn/owl/provider/router"
 	"bytes"
 	"io"
 	"time"
@@ -26,6 +27,46 @@ func OperationLog(logSvc *service.LogService) gin.HandlerFunc {
 		if v, ok := c.Get("user"); ok {
 			user = v.(*model.User)
 		}
-		_ = logSvc.RecordOperation(c, user, status, int(cost), body)
+		path := c.FullPath()
+		if path == "" {
+			path = c.Request.URL.Path
+		}
+		uType := "user"
+		uId := 0
+		uName := ""
+		if user != nil {
+			if user.IsSuperAdmin {
+				uType = "super_admin"
+			}
+			uId = int(user.ID)
+			uName = user.Username
+		}
+
+		var apiName string
+
+		for _, r := range router.GetAllRoutes() {
+			if r.Path == path && r.Method == c.Request.Method {
+				apiName = r.Name
+				break
+			}
+		}
+
+		if apiName == "" {
+			apiName = "未命名接口"
+		}
+
+		_ = logSvc.RecordOperation(&service.CreateOperationReq{
+			UserId:    uId,
+			UserName:  uName,
+			UserType:  uType,
+			ApiName:   apiName,
+			Method:    c.Request.Method,
+			Path:      path,
+			Status:    status,
+			CostMs:    int(cost),
+			Ip:        c.ClientIP(),
+			UserAgent: c.GetHeader("User-Agent"),
+			ReqBody:   body,
+		})
 	}
 }

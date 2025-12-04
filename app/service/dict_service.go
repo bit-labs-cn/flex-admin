@@ -9,8 +9,9 @@ import (
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 
-	"github.com/jinzhu/copier"
 	"strings"
+
+	"github.com/jinzhu/copier"
 )
 
 type CreateDictReq struct {

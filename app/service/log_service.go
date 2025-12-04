@@ -42,34 +42,34 @@ func (i *LogService) RecordLogin(ctx *gin.Context, user *model.User) error {
 	return i.db.Create(log).Error
 }
 
-func (i *LogService) RecordOperation(ctx *gin.Context, user *model.User, status int, costMs int, reqBody string) error {
-	ip := ctx.ClientIP()
-	ua := ctx.GetHeader("User-Agent")
-	path := ctx.FullPath()
-	if path == "" {
-		path = ctx.Request.URL.Path
-	}
-	uType := "user"
-	if user != nil && user.IsSuperAdmin {
-		uType = "super_admin"
-	}
-	uId := 0
-	uName := ""
-	if user != nil {
-		uId = int(user.ID)
-		uName = user.Username
-	}
+type CreateOperationReq struct {
+	UserId    int    `json:"userId"`
+	UserName  string `json:"userName"`
+	UserType  string `json:"userType"`
+	Method    string `json:"method"`
+	Path      string `json:"path"`
+	ApiName   string `json:"apiName"`
+	Status    int    `json:"status"`
+	CostMs    int    `json:"costMs"`
+	Ip        string `json:"ip"`
+	UserAgent string `json:"userAgent"`
+	ReqBody   string `json:"reqBody"`
+}
+
+func (i *LogService) RecordOperation(req *CreateOperationReq) error {
+
 	log := &model.OperationLog{
-		UserId:    uId,
-		UserName:  uName,
-		UserType:  uType,
-		Method:    ctx.Request.Method,
-		Path:      path,
-		Status:    status,
-		CostMs:    costMs,
-		Ip:        ip,
-		UserAgent: ua,
-		ReqBody:   reqBody,
+		UserId:    req.UserId,
+		UserName:  req.UserName,
+		UserType:  req.UserType,
+		Method:    req.Method,
+		Path:      req.Path,
+		ApiName:   req.ApiName,
+		Status:    req.Status,
+		CostMs:    req.CostMs,
+		Ip:        req.Ip,
+		UserAgent: req.UserAgent,
+		ReqBody:   req.ReqBody,
 		CreatedAt: int(time.Now().Unix()),
 	}
 	return i.db.Create(log).Error
