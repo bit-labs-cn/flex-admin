@@ -1,142 +1,116 @@
 package service
 
 import (
-	"time"
-
 	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/router"
-	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 )
 
 type LogService struct {
-	db *gorm.DB
+	logRepo repository.LogRepositoryInterface // 日志仓储接口
 }
 
-func NewLogService(tx *gorm.DB) *LogService {
-	return &LogService{db: tx}
+func NewLogService(repo repository.LogRepositoryInterface) *LogService {
+	return &LogService{logRepo: repo}
 }
 
-func (i *LogService) RecordLogin(ctx *gin.Context, user *model.User) error {
-	ip := ctx.ClientIP()
-	ua := ctx.GetHeader("User-Agent")
-	t := int(time.Now().Unix())
-	uType := "user"
-	if user != nil && user.IsSuperAdmin {
-		uType = "super_admin"
-	}
-	uId := 0
-	uName := ""
-	if user != nil {
-		uId = int(user.ID)
-		uName = user.Username
-	}
-	log := &model.LoginLog{
-		Ip:        ip,
-		LoginTime: t,
-		UserId:    uId,
-		UserName:  uName,
-		UserType:  uType,
-		UserAgent: ua,
-	}
-	return i.db.Create(log).Error
-}
+// 记录登录日志
 
 type CreateOperationReq struct {
-	UserId    int    `json:"userId"`
-	UserName  string `json:"userName"`
-	UserType  string `json:"userType"`
-	Method    string `json:"method"`
-	Path      string `json:"path"`
-	ApiName   string `json:"apiName"`
-	Status    int    `json:"status"`
-	CostMs    int    `json:"costMs"`
-	Ip        string `json:"ip"`
-	UserAgent string `json:"userAgent"`
-	ReqBody   string `json:"reqBody"`
+	UserId    int    `json:"userId"`    // 用户编号
+	UserName  string `json:"userName"`  // 用户名称
+	UserType  string `json:"userType"`  // 用户类型（user/super_admin）
+	Method    string `json:"method"`    // 请求方法
+	Path      string `json:"path"`      // 请求路径
+	ApiName   string `json:"apiName"`   // 接口中文名称
+	Status    int    `json:"status"`    // 响应状态码（HTTP）
+	CostMs    int    `json:"costMs"`    // 耗时毫秒
+	Ip        string `json:"ip"`        // 客户端 IP
+	UserAgent string `json:"userAgent"` // 客户端 UA
+	ReqBody   string `json:"reqBody"`   // 请求体（文本）
+}
+
+type CreateLoginLogReq struct {
+	UserId    int    `json:"userId"`    // 用户编号
+	UserName  string `json:"userName"`  // 用户名称
+	UserType  string `json:"userType"`  // 用户类型（user/super_admin）
+	LoginTime int    `json:"loginTime"` // 登录时间（Unix 秒）
+	Ip        string `json:"ip"`        // 客户端 IP
+	UserAgent string `json:"userAgent"` // 客户端 UA
+}
+
+func (i *LogService) RecordLogin(req *CreateLoginLogReq) error {
+	var log model.LoginLog
+	err := copier.Copy(&log, req)
+	if err != nil {
+		return err
+	}
+	return i.logRepo.SaveLoginLog(&log)
 }
 
 func (i *LogService) RecordOperation(req *CreateOperationReq) error {
-
-	log := &model.OperationLog{
-		UserId:    req.UserId,
-		UserName:  req.UserName,
-		UserType:  req.UserType,
-		Method:    req.Method,
-		Path:      req.Path,
-		ApiName:   req.ApiName,
-		Status:    req.Status,
-		CostMs:    req.CostMs,
-		Ip:        req.Ip,
-		UserAgent: req.UserAgent,
-		ReqBody:   req.ReqBody,
-		CreatedAt: int(time.Now().Unix()),
+	var log model.OperationLog
+	err := copier.Copy(&log, req)
+	if err != nil {
+		return err
 	}
-	return i.db.Create(log).Error
+	return i.logRepo.SaveOperationLog(&log)
 }
 
 type RetrieveLoginLogsReq struct {
 	router.PageReq
-	UserName string `json:"userName"`
-	Ip       string `json:"ip"`
-	UserType string `json:"userType"`
-	Start    int    `json:"start"`
-	End      int    `json:"end"`
+	UserName string `json:"userName"` // 用户名
+	Ip       string `json:"ip"`       // IP 地址
+	UserType string `json:"userType"` // 用户类型（user/super_admin）
+	Start    int    `json:"start"`    // 开始时间（Unix 秒）
+	End      int    `json:"end"`      // 结束时间（Unix 秒）
 }
 
 func (i *LogService) RetrieveLoginLogs(req *RetrieveLoginLogsReq) (count int64, list []model.LoginLog, err error) {
-	tx := i.db.Model(&model.LoginLog{})
-	if req.UserName != "" {
-		tx = tx.Where("user_name = ?", req.UserName)
-	}
-	if req.Ip != "" {
-		tx = tx.Where("ip = ?", req.Ip)
-	}
-	if req.UserType != "" {
-		tx = tx.Where("user_type = ?", req.UserType)
-	}
-	if req.Start > 0 && req.End > 0 {
-		tx = tx.Where("login_time BETWEEN ? AND ?", req.Start, req.End)
-	}
-	err = tx.Count(&count).Error
-	if err != nil {
-		return
-	}
-	err = tx.Order("id DESC").Limit(req.PageSize).Offset((req.Page - 1) * req.PageSize).Find(&list).Error
-	return
+	return i.logRepo.RetrieveLoginLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
+		if req.UserName != "" {
+			tx.Where("user_name = ?", req.UserName)
+		}
+		if req.Ip != "" {
+			tx.Where("ip = ?", req.Ip)
+		}
+		if req.UserType != "" {
+			tx.Where("user_type = ?", req.UserType)
+		}
+		if req.Start > 0 && req.End > 0 {
+			tx.Where("login_time BETWEEN ? AND ?", req.Start, req.End)
+		}
+	})
 }
 
 type RetrieveOperationLogsReq struct {
 	router.PageReq
-	UserName string `json:"userName"`
-	Path     string `json:"path"`
-	Method   string `json:"method"`
-	Status   *int   `json:"status"`
-	Start    int    `json:"start"`
-	End      int    `json:"end"`
+	UserName string `json:"userName"` // 用户名
+	Path     string `json:"path"`     // 请求路径（模糊）
+	Method   string `json:"method"`   // 请求方法
+	Status   *int   `json:"status"`   // 状态码
+	Start    int    `json:"start"`    // 开始时间（Unix 秒）
+	End      int    `json:"end"`      // 结束时间（Unix 秒）
 }
 
 func (i *LogService) RetrieveOperationLogs(req *RetrieveOperationLogsReq) (count int64, list []model.OperationLog, err error) {
-	tx := i.db.Model(&model.OperationLog{})
-	if req.UserName != "" {
-		tx = tx.Where("user_name = ?", req.UserName)
-	}
-	if req.Path != "" {
-		tx = tx.Where("path LIKE ?", "%"+req.Path+"%")
-	}
-	if req.Method != "" {
-		tx = tx.Where("method = ?", req.Method)
-	}
-	if req.Status != nil {
-		tx = tx.Where("status = ?", *req.Status)
-	}
-	if req.Start > 0 && req.End > 0 {
-		tx = tx.Where("created_at BETWEEN ? AND ?", req.Start, req.End)
-	}
-	err = tx.Count(&count).Error
-	if err != nil {
-		return
-	}
-	err = tx.Order("id DESC").Limit(req.PageSize).Offset((req.Page - 1) * req.PageSize).Find(&list).Error
-	return
+	return i.logRepo.RetrieveOperationLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
+		if req.UserName != "" {
+			tx.Where("user_name = ?", req.UserName)
+		}
+		if req.Path != "" {
+			tx.Where("path LIKE ?", "%"+req.Path+"%")
+		}
+		if req.Method != "" {
+			tx.Where("method = ?", req.Method)
+		}
+		if req.Status != nil {
+			tx.Where("status = ?", *req.Status)
+		}
+		if req.Start > 0 && req.End > 0 {
+			tx.Where("created_at BETWEEN ? AND ?", req.Start, req.End)
+		}
+	})
 }

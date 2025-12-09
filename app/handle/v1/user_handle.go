@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"time"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl/provider/db"
@@ -321,7 +323,19 @@ func (i *UserHandle) Login(ctx *gin.Context) {
 		router.InternalError(ctx, err)
 		return
 	}
-	_ = i.logSvc.RecordLogin(ctx, login.User)
+	// 记录登录日志
+	var uType = "user"
+	if login.User != nil && login.User.IsSuperAdmin {
+		uType = "super_admin"
+	}
+	_ = i.logSvc.RecordLogin(&service.CreateLoginLogReq{
+		UserId:    int(login.User.ID),
+		UserName:  login.User.Username,
+		UserType:  uType,
+		LoginTime: int(time.Now().Unix()),
+		Ip:        ctx.ClientIP(),
+		UserAgent: ctx.GetHeader("User-Agent"),
+	})
 	router.Success(ctx, login)
 }
 func (i *UserHandle) Register(ctx *gin.Context) {

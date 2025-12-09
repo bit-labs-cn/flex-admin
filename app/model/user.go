@@ -1,9 +1,10 @@
 package model
 
 import (
-	"bit-labs.cn/owl/provider/db"
 	"errors"
 	"time"
+
+	"bit-labs.cn/owl/provider/db"
 
 	"github.com/spf13/cast"
 )

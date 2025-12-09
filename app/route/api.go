@@ -16,24 +16,65 @@ import (
 
 var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu, positionMenu, monitorMenu *router.Menu
 
-func InitMenu() *router.Menu {
-	return &router.Menu{
-		Path: "/system",
-		Name: "System",
-		Meta: router.Meta{
-			Title: "超级管理员",
-			Icon:  "ep:lock",
+func InitMenu() []*router.Menu {
+	return []*router.Menu{
+		{
+			Path: "/system/rbac",
+			Name: "SystemRbac",
+			Meta: router.Meta{
+				Title: "用户权限",
+				Icon:  "ep:user",
+			},
+			MenuType: router.MenuTypeDir,
+			Children: []*router.Menu{
+				userMenu,
+				roleMenu,
+				deptMenu,
+				positionMenu,
+			},
 		},
-		MenuType: router.MenuTypeDir,
-		Children: []*router.Menu{
-			userMenu,
-			roleMenu,
-			deptMenu,
-			positionMenu,
-			menuMenu,
-			apiMenu,
-			dictMenu,
-			monitorMenu,
+		{
+			Path: "/system/logs",
+			Name: "SystemLogs",
+			Meta: router.Meta{
+				Title: "日志管理",
+				Icon:  "ep:monitor",
+			},
+			MenuType: router.MenuTypeDir,
+			Children: []*router.Menu{
+				{
+					Path: "/system/login-log",
+					Name: "SystemLoginLog",
+					Meta: router.Meta{
+						Title: "登录日志",
+						Icon:  "ep:monitor",
+					},
+					MenuType: router.MenuTypeMenu,
+				},
+				{
+					Path: "/system/operation-log",
+					Name: "SystemMonitorOperationLog",
+					Meta: router.Meta{
+						Title: "操作日志",
+						Icon:  "ep:monitor",
+					},
+					MenuType: router.MenuTypeMenu,
+				},
+			},
+		},
+		{
+			Path: "/system",
+			Name: "System",
+			Meta: router.Meta{
+				Title: "系统管理",
+				Icon:  "ep:setting",
+			},
+			MenuType: router.MenuTypeDir,
+			Children: []*router.Menu{
+				menuMenu,
+				apiMenu,
+				dictMenu,
+			},
 		},
 	}
 }
@@ -222,8 +263,9 @@ func InitApi(app foundation.Application, appName string) {
 				Path:          "/system/monitor/index",
 				Icon:          "ep:monitor",
 			})
-			r.Get("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").Build()
-			r.Get("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").Build()
+			r.Post("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").Build()
+			r.Post("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").Build()
+
 			monitorMenu = r.GetMenu()
 		}
 		// oauth

@@ -25,58 +25,58 @@ var (
 )
 
 type UserBatchFields struct {
-	Username string `json:"username" validate:"required,min=3,max=32"`
-	NickName string `json:"nickName" validate:"omitempty,max=32"`
-	Email    string `json:"email" validate:"omitempty,email"`
-	Phone    string `json:"phone" validate:"omitempty,numeric"`
-	Remark   string `json:"remark" validate:"omitempty,max=255"`
-	Status   int    `json:"status" validate:"omitempty,oneof=0 1"`
-	Sex      int    `json:"sex" validate:"omitempty,oneof=1 2 3"`
-	Source   string `json:"source" validate:"omitempty,max=32"`
-	SourceID string `json:"sourceId" validate:"omitempty,max=64"`
+	Username string `json:"username" validate:"required,min=3,max=32"` // 用户名
+	NickName string `json:"nickName" validate:"omitempty,max=32"`      // 昵称
+	Email    string `json:"email" validate:"omitempty,email"`          // 邮箱
+	Phone    string `json:"phone" validate:"omitempty,numeric"`        // 手机号
+	Remark   string `json:"remark" validate:"omitempty,max=255"`       // 备注
+	Status   int    `json:"status" validate:"omitempty,oneof=1 2 3"`   // 状态(1启用,2禁用,3待审核)
+	Sex      int    `json:"sex" validate:"omitempty,oneof=1 2 3"`      // 性别(1男,2女,3未知)
+	Source   string `json:"source" validate:"omitempty,max=32"`        // 来源
+	SourceID string `json:"sourceId" validate:"omitempty,max=64"`      // 来源ID
 }
 
 // CreateUserReq 创建用户
 type CreateUserReq struct {
 	UserBatchFields
-	Password string `json:"password" validate:"required,min=6,max=64"`
+	Password string `json:"password" validate:"required,min=6,max=64"` // 密码
 }
 
 type UpdateUserReq struct {
-	ID uint `json:"id,string,omitempty"`
+	ID uint `json:"id,string,omitempty"` // 用户ID
 	UserBatchFields
 }
 
 type RetrieveUserReq struct {
 	router.PageReq
-	Keyword string `json:"keyword" validate:"omitempty,max=64"`
+	Keyword string `json:"keyword" validate:"omitempty,max=64"` // 关键字
 }
 
 type LoginReq struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Username string `json:"username" validate:"required"` // 用户名
+	Password string `json:"password" validate:"required"` // 密码
 }
 
 type LoginResp struct {
 	*model.User
-	AccessToken string `json:"accessToken"`
+	AccessToken string `json:"accessToken"` // 访问令牌
 }
 
 type ChangePasswordReq struct {
-	UserID      uint   `json:"userId,string"`
-	OldPassword string `json:"oldPassword" validate:"required,min=6,max=64"`
-	NewPassword string `json:"newPassword" validate:"required,min=6,max=64"`
+	UserID      uint   `json:"userId,string"`                                // 用户ID
+	OldPassword string `json:"oldPassword" validate:"required,min=6,max=64"` // 旧密码
+	NewPassword string `json:"newPassword" validate:"required,min=6,max=64"` // 新密码
 }
 
 // ResetPasswordReq 超管重置用户密码
 type ResetPasswordReq struct {
-	UserID      uint   `json:"userId,string" validate:"required"`
-	NewPassword string `json:"newPassword" validate:"required,min=6,max=64"`
+	UserID      uint   `json:"userId,string" validate:"required"`            // 用户ID
+	NewPassword string `json:"newPassword" validate:"required,min=6,max=64"` // 新密码
 }
 
 type AssignPermissionReq struct {
-	PermissionIds []uint `json:"permissionIds"`
-	UserId        uint   `json:"userId" binding:"required"`
+	PermissionIds []uint `json:"permissionIds"`             // 权限ID列表
+	UserId        uint   `json:"userId" binding:"required"` // 用户ID
 }
 
 // AssignMenuToUser 分配菜单给用户

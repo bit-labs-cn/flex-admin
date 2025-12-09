@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl/provider/router"
 	"github.com/gin-gonic/gin"
@@ -133,14 +132,14 @@ func (i *DictHandle) Retrieve(ctx *gin.Context) {
 // @Tags			字典管理
 // @Accept			json
 // @Produce		json
-// @Param			id		path		int				true	"字典ID"
-// @Param			request	body		model.DictItem	true	"字典项"
-// @Success		200		{object}	router.Resp		"操作成功"
-// @Failure		400		{object}	router.Resp		"参数错误"
-// @Failure		500		{object}	router.Resp		"服务器内部错误"
-// @Router			/api/v1/dict/{id}/items [POST]
+// @Param			id		path		int							true	"字典ID"
+// @Param			request	body		service.CreateDictItemReq	true	"字典项创建请求"
+// @Success		200		{object}	router.Resp					"操作成功"
+// @Failure		400		{object}	router.Resp					"参数错误"
+// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Router			/api/v1/dict/{id}/item [POST]
 func (i *DictHandle) CreateItem(ctx *gin.Context) {
-	var req model.DictItem
+	var req service.CreateDictItemReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
@@ -159,18 +158,21 @@ func (i *DictHandle) CreateItem(ctx *gin.Context) {
 // @Tags			字典管理
 // @Accept			json
 // @Produce		json
-// @Param			id		path		int				true	"字典ID"
-// @Param			request	body		model.DictItem	true	"字典项"
-// @Success		200		{object}	router.Resp		"操作成功"
-// @Failure		400		{object}	router.Resp		"参数错误"
-// @Failure		500		{object}	router.Resp		"服务器内部错误"
-// @Router			/api/v1/dict/{id}/items/{itemID} [PUT]
+// @Param			id		path		int							true	"字典ID"
+// @Param			itemID	path		int							true	"字典项ID"
+// @Param			request	body		service.UpdateDictItemReq	true	"字典项更新请求"
+// @Success		200		{object}	router.Resp					"操作成功"
+// @Failure		400		{object}	router.Resp					"参数错误"
+// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Router			/api/v1/dict/{id}/item/{itemID} [PUT]
 func (i *DictHandle) UpdateItem(ctx *gin.Context) {
-	var req model.DictItem
+	var req service.UpdateDictItemReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
+	req.DictID = cast.ToUint(ctx.Param("id"))
+	req.ID = cast.ToUint(ctx.Param("itemID"))
 	err := i.dictSvc.UpdateItem(&req)
 	if err != nil {
 		router.InternalError(ctx, err)
@@ -186,7 +188,7 @@ func (i *DictHandle) UpdateItem(ctx *gin.Context) {
 // @Param			id	path		string		true	"字典ID"
 // @Success		200	{object}	router.Resp	"操作成功"
 // @Failure		500	{object}	router.Resp	"服务器内部错误"
-// @Router			/api/v1/dict/{id}/items [GET]
+// @Router			/api/v1/dict/{id}/item [GET]
 func (i *DictHandle) RetrieveItems(ctx *gin.Context) {
 	dictID := ctx.Param("id")
 	_, list, err := i.dictSvc.RetrieveItems(dictID)
@@ -205,7 +207,7 @@ func (i *DictHandle) RetrieveItems(ctx *gin.Context) {
 // @Param			itemID	path		string		true	"字典项ID"
 // @Success		200		{object}	router.Resp	"操作成功"
 // @Failure		500		{object}	router.Resp	"服务器内部错误"
-// @Router			/api/v1/dict/{id}/items/{itemID} [DELETE]
+// @Router			/api/v1/dict/{id}/item/{itemID} [DELETE]
 func (i *DictHandle) DeleteItem(ctx *gin.Context) {
 	dictID := ctx.Param("id")
 	itemID := ctx.Param("itemID")

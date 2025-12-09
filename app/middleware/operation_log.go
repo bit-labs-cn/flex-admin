@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"bit-labs.cn/owl/provider/router"
 	"bytes"
 	"io"
 	"time"
+
+	"bit-labs.cn/owl/provider/router"
 
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/service"

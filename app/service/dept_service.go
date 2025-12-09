@@ -22,16 +22,16 @@ func NewDeptService(deptRepo repository.DeptRepositoryInterface, locker redis.Lo
 }
 
 type CreateDeptReq struct {
-	Name        string `gorm:"comment:部门名称" json:"name" validate:"required,max=64"`
-	ParentId    int    `gorm:"comment:父级部门" json:"parentId,string" validate:"omitempty"`
-	Level       uint   `gorm:"comment:部门层级" json:"level" validate:"omitempty"`
-	Sort        uint   `gorm:"comment:排序" json:"sort" validate:"omitempty"`
-	Status      uint   `gorm:"comment:状态" json:"status" validate:"omitempty,oneof=0 1"`
-	Description string `gorm:"comment:描述" json:"description" binding:"omitempty,max=255"`
+	Name        string `gorm:"comment:部门名称" json:"name" validate:"required,max=64"`       // 部门名称
+	ParentId    int    `gorm:"comment:父级部门" json:"parentId,string" validate:"omitempty"`  // 父级部门
+	Level       uint   `gorm:"comment:部门层级" json:"level" validate:"omitempty"`            // 部门层级
+	Sort        uint   `gorm:"comment:排序" json:"sort" validate:"omitempty"`               // 排序
+	Status      uint   `gorm:"comment:状态" json:"status" validate:"omitempty,oneof=1 2"`   // 状态(1启用,2禁用)
+	Description string `gorm:"comment:描述" json:"description" binding:"omitempty,max=255"` // 描述
 }
 
 type UpdateDeptReq struct {
-	ID uint `json:"id,string,omitempty"`
+	ID uint `json:"id,string,omitempty"` // 部门ID
 	CreateDeptReq
 }
 

@@ -19,34 +19,34 @@ import (
 
 // CreateRoleReq 创建角色
 type CreateRoleReq struct {
-	Name   string `json:"name" validate:"required,min=2,max=32"`
-	Code   string `json:"code" validate:"required,alphanum,min=2,max=32"`
-	Remark string `json:"remark" validate:"omitempty,max=255"`
+	Name   string `json:"name" validate:"required,min=2,max=32"`          // 角色名称
+	Code   string `json:"code" validate:"required,alphanum,min=2,max=32"` // 角色编码
+	Remark string `json:"remark" validate:"omitempty,max=255"`            // 备注
 }
 
 // UpdateRoleReq 更新角色
 type UpdateRoleReq struct {
-	ID uint `json:"id,string" validate:"required"`
+	ID uint `json:"id,string" validate:"required"` // 角色ID
 	CreateRoleReq
 }
 
 // AssignMenuToRole 分配菜单给角色, 菜单和按钮权限
 type AssignMenuToRole struct {
-	RoleID  uint     `json:"roleID,string" validate:"required"`
-	MenuIDs []string `json:"menuIds" validate:"required"`
+	RoleID  uint     `json:"roleID,string" validate:"required"` // 角色ID
+	MenuIDs []string `json:"menuIds" validate:"required"`       // 菜单ID列表
 }
 
 // AssignRoleToUser 分配角色给用户
 type AssignRoleToUser struct {
-	UserID  uint     `json:"userID" validate:"required"`
-	RoleIDs []string `json:"roleIDs" validate:"required"`
+	UserID  uint     `json:"userID" validate:"required"`  // 用户ID
+	RoleIDs []string `json:"roleIDs" validate:"required"` // 角色ID列表
 }
 
 type RetrieveRoleReq struct {
 	router.PageReq
-	NameLike string `json:"nameLike" validate:"omitempty,max=32"`
-	Code     string `json:"code" validate:"omitempty,alphanum,max=32"`
-	Status   uint8  `json:"status" validate:"omitempty,oneof=0 1"`
+	NameLike string `json:"nameLike" validate:"omitempty,max=32"`      // 名称模糊搜索
+	Code     string `json:"code" validate:"omitempty,alphanum,max=32"` // 角色编码
+	Status   uint8  `json:"status" validate:"omitempty,oneof=1 2"`     // 状态(1启用,2禁用)
 }
 
 // RoleService 角色服务

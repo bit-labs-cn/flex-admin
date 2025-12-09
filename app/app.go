@@ -52,7 +52,7 @@ func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
 		&rabbitmq.RabbitMQServiceProvider{},
 	}
 }
-func (i *SubAppAdmin) Menu() *router.Menu {
+func (i *SubAppAdmin) Menu() []*router.Menu {
 	return route.InitMenu()
 }
 
@@ -82,6 +82,7 @@ func (i *SubAppAdmin) Binds() []any {
 		service.NewRoleService,
 		service.NewLogService,
 		service.NewUserService,
+		repository.NewLogRepository,
 		repository.NewDeptRepository,
 		repository.NewDictRepository,
 		repository.NewRoleRepository,
