@@ -20,6 +20,7 @@ func Migrate(db *gorm.DB) {
 		&RoleMenu{},
 		&UserMenu{},
 		&Dept{},
+		&Area{},
 		&Position{},
 		&LoginLog{},
 		&OperationLog{},

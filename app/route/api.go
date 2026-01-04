@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu, positionMenu, monitorMenu *router.Menu
+var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu, positionMenu *router.Menu
 
 func InitMenu() []*router.Menu {
 	return []*router.Menu{
@@ -89,6 +89,7 @@ func InitApi(app foundation.Application, appName string) {
 		dictHandle *v1.DictHandle,
 		deptHandle *v1.DeptHandle,
 		positionHandle *v1.PositionHandle,
+		areaHandle *v1.AreaHandle,
 		logHandle *v1.LogHandle,
 		enforcer casbin.IEnforcer,
 		oauthHandle *oauth.Handle,
@@ -222,6 +223,16 @@ func InitApi(app foundation.Application, appName string) {
 			dictMenu = r.GetMenu()
 		}
 
+		// area
+		{
+			r := router.NewRouteInfoBuilder(appName, areaHandle, gv1, router.MenuOption{
+				ComponentName: "SystemArea",
+				Path:          "/system/area/index",
+				Icon:          "ep:location",
+			})
+			r.Post("/areas/all", router.AccessAuthenticated, areaHandle.RetrieveAll).Name("查询省市区").Description("查询所有省市区数据（平铺，不构建树）").Build()
+		}
+
 		// dept
 		{
 			r := router.NewRouteInfoBuilder(appName, deptHandle, gv1, router.MenuOption{
@@ -265,8 +276,6 @@ func InitApi(app foundation.Application, appName string) {
 			})
 			r.Post("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").Build()
 			r.Post("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").Build()
-
-			monitorMenu = r.GetMenu()
 		}
 		// oauth
 

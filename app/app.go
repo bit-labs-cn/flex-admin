@@ -75,6 +75,7 @@ func (i *SubAppAdmin) Binds() []any {
 		v1.NewMenuHandle,
 		v1.NewRoleHandle,
 		v1.NewPositionHandle,
+		v1.NewAreaHandle,
 		v1.NewLogHandle,
 		v1.NewUserHandle,
 		service.NewDeptService,
@@ -82,12 +83,14 @@ func (i *SubAppAdmin) Binds() []any {
 		service.NewRoleService,
 		service.NewLogService,
 		service.NewUserService,
+		service.NewAreaService,
 		repository.NewLogRepository,
 		repository.NewDeptRepository,
 		repository.NewDictRepository,
 		repository.NewRoleRepository,
 		repository.NewPositionRepository,
 		repository.NewUserRepository,
+		repository.NewAreaRepository,
 		service.NewPositionService,
 	}
 }

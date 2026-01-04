@@ -14,6 +14,11 @@ import (
 
 func OperationLog(logSvc *service.LogService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == "GET" {
+			c.Next()
+			return
+		}
+
 		start := time.Now()
 		var body string
 		if c.Request.Body != nil {
