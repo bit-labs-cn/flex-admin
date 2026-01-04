@@ -43,20 +43,20 @@ func InitMenu() []*router.Menu {
 			MenuType: router.MenuTypeDir,
 			Children: []*router.Menu{
 				{
-					Path: "/system/login-log",
+					Path: "/system/login-log/index",
 					Name: "SystemLoginLog",
 					Meta: router.Meta{
 						Title: "登录日志",
-						Icon:  "ep:monitor",
+						Icon:  "material-symbols-light:login-outline-rounded",
 					},
 					MenuType: router.MenuTypeMenu,
 				},
 				{
-					Path: "/system/operation-log",
+					Path: "/system/operation-log/index",
 					Name: "SystemMonitorOperationLog",
 					Meta: router.Meta{
 						Title: "操作日志",
-						Icon:  "ep:monitor",
+						Icon:  "twemoji:hammer-and-wrench",
 					},
 					MenuType: router.MenuTypeMenu,
 				},
