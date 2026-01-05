@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/flex-admin/app/service"
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/router"
@@ -14,17 +13,15 @@ var _ router.CrudHandler = (*RoleHandle)(nil)
 
 type RoleHandle struct {
 	roleService *service.RoleService
-	roleRepo    repository.RoleRepositoryInterface
 }
 
 func (i *RoleHandle) ModuleName() (string, string) {
 	return "role", "角色管理"
 }
 
-func NewRoleHandle(roleService *service.RoleService, roleRepository repository.RoleRepositoryInterface) *RoleHandle {
+func NewRoleHandle(roleService *service.RoleService) *RoleHandle {
 	return &RoleHandle{
 		roleService: roleService,
-		roleRepo:    roleRepository,
 	}
 }
 
@@ -170,7 +167,7 @@ func (i *RoleHandle) GetRoleMenuIDs(ctx *gin.Context) {
 // @Failure		500	{object}	router.Resp	"服务器内部错误"
 // @Router			/api/v1/role/options [GET]
 func (i *RoleHandle) RoleOptions(ctx *gin.Context) {
-	x, err := i.roleRepo.Options()
+	x, err := i.roleService.Options()
 	if err != nil {
 		router.InternalError(ctx, err)
 		return

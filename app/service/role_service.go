@@ -62,13 +62,21 @@ type RoleService struct {
 	locker   redis.LockerFactory
 }
 
-func NewRoleService(menuManager *router.MenuRepository, roleRepo repository.RoleRepositoryInterface, enforcer casbin.IEnforcer, bus EventBus.Bus, locker redis.LockerFactory) *RoleService {
+func NewRoleService(
+	menuManager *router.MenuRepository,
+	roleRepo repository.RoleRepositoryInterface,
+	enforcer casbin.IEnforcer,
+	bus EventBus.Bus,
+	locker redis.LockerFactory,
+	gdb *gorm.DB,
+) *RoleService {
 	return &RoleService{
-		menuRepo: menuManager,
-		enforcer: enforcer,
-		roleRepo: roleRepo,
-		eventbus: bus,
-		locker:   locker,
+		menuRepo:       menuManager,
+		enforcer:       enforcer,
+		roleRepo:       roleRepo,
+		eventbus:       bus,
+		locker:         locker,
+		BaseRepository: db.NewBaseRepository[model.Role](gdb),
 	}
 }
 func (i *RoleService) WithContext(ctx context.Context) *RoleService {
@@ -117,6 +125,10 @@ func (i *RoleService) ChangeStatus(req *db.ChangeStatus) error {
 	}
 	defer l.Unlock()
 	return i.BaseRepository.ChangeStatus(req)
+}
+
+func (i *RoleService) Options() (list []repository.RoleItem, err error) {
+	return i.roleRepo.Options()
 }
 
 // DeleteRole 删除角色
