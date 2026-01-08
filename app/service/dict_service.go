@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"strings"
 
 	"bit-labs.cn/flex-admin/app/model"
@@ -45,11 +44,13 @@ func (i DictService) CreateDict(req *CreateDictReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("dict:create"); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	dict := new(model.Dict)
 	err := copier.Copy(&dict, req)
 	if err != nil {
@@ -63,11 +64,13 @@ func (i DictService) UpdateDict(req *UpdateDictReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("dict:update:" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	dict, err := i.dictRepo.Detail(req.ID)
 	if err != nil {
 		return err
@@ -83,9 +86,9 @@ func (i DictService) UpdateDict(req *UpdateDictReq) error {
 
 type RetrieveDictReq struct {
 	router.PageReq
-	NameLike string `json:"nameLike" binding:"omitempty,max=64" validate:"omitempty,max=64"` // 名称模糊搜索
-	StatusIn string `json:"statusIn" binding:"omitempty" validate:"omitempty"`               // 状态 in 查询
-	Type     string `json:"type" binding:"omitempty,max=32" validate:"omitempty,max=32"`     // 字典类型
+	NameLike string `json:"name" binding:"omitempty,max=64" validate:"omitempty,max=64"` // 名称模糊搜索
+	StatusIn string `json:"status" binding:"omitempty" validate:"omitempty"`             // 状态 in 查询
+	Type     string `json:"type" binding:"omitempty,max=32" validate:"omitempty,max=32"` // 字典类型
 }
 
 func (i DictService) RetrieveDicts(req *RetrieveDictReq) (count int64, list []model.Dict, err error) {
@@ -125,15 +128,18 @@ func (i DictService) CreateItem(req *CreateDictItemReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("dict:item:create:" + cast.ToString(req.DictID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	_, err := i.dictRepo.Detail(req.DictID)
 	if err != nil {
 		return err
 	}
+
 	var item model.DictItem
 	if err := copier.Copy(&item, req); err != nil {
 		return err
@@ -148,10 +154,12 @@ func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
 		return err
 	}
 	defer l.Unlock()
+
 	_, err := i.dictRepo.Detail(dictID)
 	if err != nil {
 		return err
 	}
+
 	return i.dictRepo.DeleteItem(itemIds...)
 }
 func (i DictService) UpdateItem(req *UpdateDictItemReq) error {
@@ -174,7 +182,6 @@ func (i DictService) UpdateItem(req *UpdateDictItemReq) error {
 	if err := copier.Copy(&item, req); err != nil {
 		return err
 	}
-	item.ID = req.ID
 
 	return i.dictRepo.UpdateItem(&item)
 }
@@ -196,5 +203,14 @@ func (i DictService) DeleteDict(ids ...string) error {
 
 func (i DictService) GetDictByType(dictType string) ([]model.DictItem, error) {
 
-	return nil, errors.New("not implemented")
+	if _, err := i.dictRepo.DetailByType(dictType); err != nil {
+		return nil, err
+	}
+
+	_, list, err := i.dictRepo.RetrieveItemsByType(dictType)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }

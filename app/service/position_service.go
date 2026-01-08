@@ -13,19 +13,19 @@ import (
 )
 
 type CreatePositionReq struct {
-	Name   string `json:"name" validate:"omitempty,min=2,max=32"` // 岗位名称
-	Remark string `json:"remark" validate:"omitempty,max=255"`    // 备注
-	Status int    `json:"status" validate:"omitempty,oneof=1 2"`  // 状态(1启用,2禁用)
+	Name   string `json:"name" validate:"required,min=2,max=32"` // 岗位名称
+	Remark string `json:"remark" validate:"omitempty,max=255"`   // 备注
+	Status int    `json:"status" validate:"required,oneof=1 2"`  // 状态(1启用,2禁用)
 }
 
 type UpdatePositionReq struct {
-	ID uint `json:"id,string"` // 岗位ID
+	ID uint `json:"id,string" validate:"required,gt=0"` // 岗位ID
 	CreatePositionReq
 }
 
 type RetrievePositionReq struct {
 	router.PageReq
-	NameLike string `json:"nameLike" validate:"omitempty,max=32"`  // 名称模糊搜索
+	NameLike string `json:"name" validate:"omitempty,max=32"`      // 名称模糊搜索
 	Status   int    `json:"status" validate:"omitempty,oneof=1 2"` // 状态(1启用,2禁用)
 }
 
@@ -36,7 +36,12 @@ type PositionService struct {
 	validate *validatorv10.Validate
 }
 
-func NewPositionService(repo repository.PositionRepositoryInterface, tx *gorm.DB, locker redis.LockerFactory, validate *validatorv10.Validate) *PositionService {
+func NewPositionService(
+	repo repository.PositionRepositoryInterface,
+	tx *gorm.DB,
+	locker redis.LockerFactory,
+	validate *validatorv10.Validate,
+) *PositionService {
 	return &PositionService{BaseRepository: db.NewBaseRepository[model.Position](tx), repo: repo, locker: locker, validate: validate}
 }
 
@@ -44,14 +49,19 @@ func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("position:create"); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	var m model.Position
-	_ = copier.Copy(&m, req)
-	m.Status = 1
+	err := copier.Copy(&m, req)
+	if err != nil {
+		return err
+	}
+
 	return i.repo.Save(&m)
 }
 
@@ -59,15 +69,18 @@ func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("position:update:" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	m, err := i.repo.Detail(req.ID)
 	if err != nil {
 		return err
 	}
+
 	if err = copier.Copy(m, req); err != nil {
 		return err
 	}
@@ -89,11 +102,13 @@ func (i *PositionService) ChangeStatus(req *db.ChangeStatus) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("position:status:" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.BaseRepository.ChangeStatus(req)
 }
 
@@ -101,7 +116,10 @@ func (i *PositionService) RetrievePositions(req *RetrievePositionReq) (count int
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
-	return i.repo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) { db.AppendWhereFromStruct(tx, req) })
+
+	return i.repo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+		db.AppendWhereFromStruct(tx, req)
+	})
 }
 
 func (i *PositionService) Options() (list []repository.PositionItem, err error) {

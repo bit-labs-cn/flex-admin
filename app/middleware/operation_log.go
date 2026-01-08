@@ -61,7 +61,7 @@ func OperationLog(logSvc *service.LogService) gin.HandlerFunc {
 			apiName = "未命名接口"
 		}
 
-		_ = logSvc.RecordOperation(&service.CreateOperationReq{
+		_ = logSvc.CreateOperationLog(&service.CreateOperationLogReq{
 			UserId:    uId,
 			UserName:  uName,
 			UserType:  uType,

@@ -3,7 +3,9 @@ package service
 import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
+	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/redis"
+	"bit-labs.cn/owl/provider/router"
 	validatorv10 "github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
@@ -38,17 +40,25 @@ type UpdateDeptReq struct {
 	CreateDeptReq
 }
 
+type RetrieveDeptReq struct {
+	router.PageReq
+	NameLike string `json:"name" validate:"omitempty,max=64"`      // 部门名称模糊搜索
+	Status   uint   `json:"status" validate:"omitempty,oneof=1 2"` // 状态(1启用,2禁用)
+}
+
 // CreateDept 创建部门
 // 就算 CreateDeptReq 直接使用了 model.Dept 作为了结构体，但是也要单独声明 CreateDeptReq 来接收参数，因为这样可扩展性更高
 func (i DeptService) CreateDept(req *CreateDeptReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("dept:create"); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	var dept model.Dept
 	err := copier.Copy(&dept, req)
 	if err != nil {
@@ -61,11 +71,13 @@ func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("dept:update:" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	var dept model.Dept
 	err := copier.Copy(&dept, req)
 	if err != nil {
@@ -80,11 +92,17 @@ func (i DeptService) DeleteDept(id uint) error {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.deptRepo.Delete(id)
 }
 
-func (i DeptService) RetrieveDepts() (count int64, list []model.Dept, err error) {
-	return i.deptRepo.Retrieve(1, 1000, func(db *gorm.DB) {
+func (i DeptService) RetrieveDepts(req *RetrieveDeptReq) (count int64, list []model.Dept, err error) {
+	if err := i.validate.Struct(req); err != nil {
+		return 0, nil, err
+	}
 
+	return i.deptRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+		db.AppendWhereFromStruct(tx, req)
+		tx.Order("sort asc").Order("id asc")
 	})
 }

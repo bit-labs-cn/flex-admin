@@ -22,6 +22,7 @@ import (
 type CreateRoleReq struct {
 	Name   string `json:"name" validate:"required,min=2,max=32"`          // 角色名称
 	Code   string `json:"code" validate:"required,alphanum,min=2,max=32"` // 角色编码
+	Status int    `json:"status" validate:"required,oneof=1 2"`           // 状态(1启用,2禁用)
 	Remark string `json:"remark" validate:"omitempty,max=255"`            // 备注
 }
 
@@ -39,8 +40,8 @@ type AssignMenuToRole struct {
 
 // AssignRoleToUser 分配角色给用户
 type AssignRoleToUser struct {
-	UserID  uint     `json:"userID" validate:"required"`  // 用户ID
-	RoleIDs []string `json:"roleIDs" validate:"required"` // 角色ID列表
+	UserID  uint     `json:"userID,string" validate:"required"` // 用户ID
+	RoleIDs []string `json:"roleIDs" validate:"required"`       // 角色ID列表
 }
 
 type RetrieveRoleReq struct {
@@ -91,18 +92,19 @@ func (i *RoleService) CreateRole(req *CreateRoleReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("role:create"); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	var role model.Role
 	err := copier.Copy(&role, req)
 	if err != nil {
 		return err
 	}
 
-	role.Status = 1 // 默认启用
 	return i.roleRepo.Save(&role)
 }
 
@@ -110,6 +112,7 @@ func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("role:update:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -120,10 +123,12 @@ func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
 	if err != nil {
 		return err
 	}
+
 	err = copier.Copy(&role, req)
 	if err != nil {
 		return err
 	}
+
 	return i.roleRepo.Save(role)
 }
 
@@ -132,11 +137,13 @@ func (i *RoleService) ChangeStatus(req *db.ChangeStatus) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("role:status:" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.BaseRepository.ChangeStatus(req)
 }
 
@@ -160,6 +167,7 @@ func (i *RoleService) RetrieveRoles(req *RetrieveRoleReq) (count int64, list []m
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
+
 	return i.roleRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
@@ -169,6 +177,7 @@ func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("role:assign-menus:" + cast.ToString(req.RoleID)); err != nil {
 		return err
@@ -183,7 +192,9 @@ func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
 	role.SetMenus(db.GetModelsByIDs[model.Menu](req.MenuIDs))
 
 	err = i.roleRepo.Save(role)
+
 	i.eventbus.Publish(event.AssignMenuToRole, req)
+
 	return err
 }
 

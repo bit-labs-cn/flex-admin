@@ -328,7 +328,7 @@ func (i *UserHandle) Login(ctx *gin.Context) {
 	if login.User != nil && login.User.IsSuperAdmin {
 		uType = "super_admin"
 	}
-	_ = i.logSvc.RecordLogin(&service.CreateLoginLogReq{
+	_ = i.logSvc.CreateLoginLog(&service.CreateLoginLogReq{
 		UserId:    int(login.User.ID),
 		UserName:  login.User.Username,
 		UserType:  uType,

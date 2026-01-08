@@ -214,6 +214,7 @@ func InitApi(app foundation.Application, appName string) {
 			r.Delete("/dict/:id", router.AccessSuperAdmin, dictHandle.Delete).Name("删除字典").Build()
 			r.Put("/dict/:id", router.AccessSuperAdmin, dictHandle.Update).Name("更新字典").Build()
 			r.Get("/dict", router.AccessSuperAdmin, dictHandle.Retrieve).Name("字典列表").Build()
+			r.Get("/dict/types/:type/items", router.AccessAuthenticated, dictHandle.GetItemsByType).Name("按类型获取字典项").Description("仅需登录，返回启用字典项").Build()
 
 			r.Post("/dict/:id/item", router.AccessSuperAdmin, dictHandle.CreateItem).Name("新增字典项").Build()
 			r.Put("/dict/:id/item/:itemID", router.AccessSuperAdmin, dictHandle.UpdateItem).Name("更新字典项").Build()

@@ -3,6 +3,7 @@ package service
 import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
+	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/router"
 	validatorv10 "github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
@@ -20,7 +21,7 @@ func NewLogService(repo repository.LogRepositoryInterface, validate *validatorv1
 
 // 记录登录日志
 
-type CreateOperationReq struct {
+type CreateOperationLogReq struct {
 	UserId    int    `json:"userId" validate:"required,gte=1"`           // 用户编号
 	UserName  string `json:"userName" validate:"required,max=64"`        // 用户名称
 	UserType  string `json:"userType" validate:"required,max=32"`        // 用户类型（user/super_admin）
@@ -43,7 +44,7 @@ type CreateLoginLogReq struct {
 	UserAgent string `json:"userAgent" validate:"omitempty,max=255"` // 客户端 UA
 }
 
-func (i *LogService) RecordLogin(req *CreateLoginLogReq) error {
+func (i *LogService) CreateLoginLog(req *CreateLoginLogReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func (i *LogService) RecordLogin(req *CreateLoginLogReq) error {
 	return i.logRepo.SaveLoginLog(&log)
 }
 
-func (i *LogService) RecordOperation(req *CreateOperationReq) error {
+func (i *LogService) CreateOperationLog(req *CreateOperationLogReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -73,11 +74,10 @@ func (i *LogService) RecordOperation(req *CreateOperationReq) error {
 
 type RetrieveLoginLogsReq struct {
 	router.PageReq
-	UserName string `json:"userName"` // 用户名
-	Ip       string `json:"ip"`       // IP 地址
-	UserType string `json:"userType"` // 用户类型（user/super_admin）
-	Start    int    `json:"start"`    // 开始时间（Unix 秒）
-	End      int    `json:"end"`      // 结束时间（Unix 秒）
+	UserNameLike     string `json:"userName"`  // 用户名模糊
+	Ip               string `json:"ip"`        // IP 地址
+	UserType         string `json:"userType"`  // 用户类型（user/super_admin）
+	CreatedAtBetween string `json:"createdAt"` // 创建时间区间查询
 }
 
 func (i *LogService) RetrieveLoginLogs(req *RetrieveLoginLogsReq) (count int64, list []model.LoginLog, err error) {
@@ -86,29 +86,17 @@ func (i *LogService) RetrieveLoginLogs(req *RetrieveLoginLogsReq) (count int64, 
 	}
 
 	return i.logRepo.RetrieveLoginLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
-		if req.UserName != "" {
-			tx.Where("user_name = ?", req.UserName)
-		}
-		if req.Ip != "" {
-			tx.Where("ip = ?", req.Ip)
-		}
-		if req.UserType != "" {
-			tx.Where("user_type = ?", req.UserType)
-		}
-		if req.Start > 0 && req.End > 0 {
-			tx.Where("login_time BETWEEN ? AND ?", req.Start, req.End)
-		}
+		db.AppendWhereFromStruct(tx, req)
 	})
 }
 
 type RetrieveOperationLogsReq struct {
 	router.PageReq
-	UserName string `json:"userName"` // 用户名
-	Path     string `json:"path"`     // 请求路径（模糊）
-	Method   string `json:"method"`   // 请求方法
-	Status   *int   `json:"status"`   // 状态码
-	Start    int    `json:"start"`    // 开始时间（Unix 秒）
-	End      int    `json:"end"`      // 结束时间（Unix 秒）
+	UserNameLike     string `json:"userName"`  // 用户名
+	PathLike         string `json:"path"`      // 请求路径（模糊）
+	Method           string `json:"method"`    // 请求方法
+	Status           *int   `json:"status"`    // 状态码
+	CreatedAtBetween string `json:"createdAt"` // 创建时间区间查询
 }
 
 func (i *LogService) RetrieveOperationLogs(req *RetrieveOperationLogsReq) (count int64, list []model.OperationLog, err error) {
@@ -116,20 +104,6 @@ func (i *LogService) RetrieveOperationLogs(req *RetrieveOperationLogsReq) (count
 		return 0, nil, err
 	}
 	return i.logRepo.RetrieveOperationLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
-		if req.UserName != "" {
-			tx.Where("user_name = ?", req.UserName)
-		}
-		if req.Path != "" {
-			tx.Where("path LIKE ?", "%"+req.Path+"%")
-		}
-		if req.Method != "" {
-			tx.Where("method = ?", req.Method)
-		}
-		if req.Status != nil {
-			tx.Where("status = ?", *req.Status)
-		}
-		if req.Start > 0 && req.End > 0 {
-			tx.Where("created_at BETWEEN ? AND ?", req.Start, req.End)
-		}
+		db.AppendWhereFromStruct(tx, req)
 	})
 }

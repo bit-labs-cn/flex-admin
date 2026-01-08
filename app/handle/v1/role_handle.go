@@ -41,6 +41,7 @@ func (i *RoleHandle) Create(ctx *gin.Context) {
 		router.BadRequest(ctx, err.Error())
 		return
 	}
+
 	err := i.roleService.CreateRole(req)
 	if err != nil {
 		router.InternalError(ctx, err)

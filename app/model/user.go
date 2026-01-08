@@ -42,7 +42,7 @@ func (i *User) SetRoles(roles []Role) {
 }
 func (i *User) ChangePassword(old, new string) error {
 	if i.Password != old {
-		return errors.New("密码错误")
+		return errors.New("旧密码错误")
 	}
 	i.Password = new
 	return nil

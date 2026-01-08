@@ -199,6 +199,24 @@ func (i *DictHandle) RetrieveItems(ctx *gin.Context) {
 	router.Success(ctx, list)
 }
 
+// @Summary		按类型获取字典项
+// @Description	按字典类型获取启用的字典项列表（仅需登录）
+// @Tags			字典管理
+// @Produce		json
+// @Param			type	path		string		true	"字典类型"
+// @Success		200		{object}	router.Resp	"操作成功"
+// @Failure		500		{object}	router.Resp	"服务器内部错误"
+// @Router			/api/v1/dict/types/{type}/items [GET]
+func (i *DictHandle) GetItemsByType(ctx *gin.Context) {
+	dictType := ctx.Param("type")
+	list, err := i.dictSvc.GetDictByType(dictType)
+	if err != nil {
+		router.InternalError(ctx, err)
+		return
+	}
+	router.Success(ctx, list)
+}
+
 // @Summary		删除字典项
 // @Description	删除指定字典的指定字典项
 // @Tags			字典管理

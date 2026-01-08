@@ -25,10 +25,10 @@ func (i AreaHandle) ModuleName() (en string, zh string) {
 // @Tags			省市区
 // @Accept			json
 // @Produce		json
-// @Param			request	body		service.RetrieveAllAreaReq	true	"查询请求"
+// @Param			request	body		service.RetrieveAllAreaReq		true	"查询请求"
 // @Success		200		{object}	router.Resp{data=[]model.Area}	"操作成功"
-// @Failure		400		{object}	router.Resp					"参数错误"
-// @Failure		500		{object}	router.Resp					"服务器内部错误"
+// @Failure		400		{object}	router.Resp						"参数错误"
+// @Failure		500		{object}	router.Resp						"服务器内部错误"
 // @Router			/api/v1/areas/all [POST]
 func (i AreaHandle) RetrieveAll(ctx *gin.Context) {
 	var req service.RetrieveAllAreaReq

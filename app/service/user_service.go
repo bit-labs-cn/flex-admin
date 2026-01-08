@@ -233,6 +233,7 @@ func (i *UserService) AssignRoleToUser(req *AssignRoleToUser) error {
 	if err != nil {
 		return err
 	}
+
 	user.SetRoles(roles)
 	err = i.userRepo.Save(user)
 
@@ -341,17 +342,19 @@ func (i *UserService) CreateUser(req *CreateUserReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:create"); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	var user model.User
 	err := copier.Copy(&user, req)
 	if err != nil {
 		return err
 	}
-	user.Password = utils.BcryptHash(req.Password)
+	user.SetPassword(req.Password)
 
 	if err = i.userRepo.Save(&user); err != nil {
 		return err
@@ -364,6 +367,7 @@ func (i *UserService) Register(req *model.User) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:register"); err != nil {
 		return err
@@ -409,11 +413,13 @@ func (i *UserService) ChangeUserStatus(req *db.ChangeStatus) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:status:" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.BaseRepository.ChangeStatus(req)
 }
 

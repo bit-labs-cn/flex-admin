@@ -98,7 +98,12 @@ func (i DeptHandle) Delete(ctx *gin.Context) {
 // @Failure		500	{object}	router.Resp						"服务器内部错误"
 // @Router			/api/v1/dept [GET]
 func (i DeptHandle) Retrieve(ctx *gin.Context) {
-	_, list, err := i.deptSvc.RetrieveDepts()
+	var req service.RetrieveDeptReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		router.BadRequest(ctx, "参数绑定失败")
+		return
+	}
+	_, list, err := i.deptSvc.RetrieveDepts(&req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
