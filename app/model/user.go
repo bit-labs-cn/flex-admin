@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bit-labs.cn/owl/utils"
 	"errors"
 	"time"
 
@@ -49,6 +50,10 @@ func (i *User) ChangePassword(old, new string) error {
 
 func (i *User) SetAvatar(avatar string) {
 	i.Avatar = avatar
+}
+
+func (i *User) SetPassword(newPassword string) {
+	i.Password = utils.BcryptHash(newPassword)
 }
 
 func (i *User) GetRoleIDs() []string {

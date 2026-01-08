@@ -1,17 +1,18 @@
 package service
 
 import (
+	"errors"
+	"strings"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
+	validatorv10 "github.com/go-playground/validator/v10"
+	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
-
-	"strings"
-
-	"github.com/jinzhu/copier"
 )
 
 type CreateDictReq struct {
@@ -30,15 +31,20 @@ type UpdateDictReq struct {
 type DictService struct {
 	dictRepo repository.DictRepositoryInterface // 字典仓储接口
 	locker   redis.LockerFactory                // 分布式锁工厂
+	validate *validatorv10.Validate
 }
 
-func NewDictService(dictRepo repository.DictRepositoryInterface, locker redis.LockerFactory) *DictService {
+func NewDictService(dictRepo repository.DictRepositoryInterface, locker redis.LockerFactory, validate *validatorv10.Validate) *DictService {
 	return &DictService{
 		dictRepo: dictRepo,
 		locker:   locker,
+		validate: validate,
 	}
 }
 func (i DictService) CreateDict(req *CreateDictReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("dict:create"); err != nil {
 		return err
@@ -54,6 +60,9 @@ func (i DictService) CreateDict(req *CreateDictReq) error {
 }
 
 func (i DictService) UpdateDict(req *UpdateDictReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("dict:update:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -74,12 +83,15 @@ func (i DictService) UpdateDict(req *UpdateDictReq) error {
 
 type RetrieveDictReq struct {
 	router.PageReq
-	NameLike string `json:"nameLike" binding:"omitempty,max=64"` // 名称模糊搜索
-	StatusIn string `json:"statusIn" binding:"omitempty"`        // 状态 in 查询
-	Type     string `json:"type" binding:"omitempty,max=32"`     // 字典类型
+	NameLike string `json:"nameLike" binding:"omitempty,max=64" validate:"omitempty,max=64"` // 名称模糊搜索
+	StatusIn string `json:"statusIn" binding:"omitempty" validate:"omitempty"`               // 状态 in 查询
+	Type     string `json:"type" binding:"omitempty,max=32" validate:"omitempty,max=32"`     // 字典类型
 }
 
 func (i DictService) RetrieveDicts(req *RetrieveDictReq) (count int64, list []model.Dict, err error) {
+	if err := i.validate.Struct(req); err != nil {
+		return 0, nil, err
+	}
 	return i.dictRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Order("sort asc")
@@ -110,6 +122,9 @@ type UpdateDictItemReq struct {
 }
 
 func (i DictService) CreateItem(req *CreateDictItemReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("dict:item:create:" + cast.ToString(req.DictID)); err != nil {
 		return err
@@ -127,6 +142,7 @@ func (i DictService) CreateItem(req *CreateDictItemReq) error {
 }
 
 func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
+
 	l := i.locker.New()
 	if err := l.Lock("dict:item:delete:" + cast.ToString(dictID) + ":" + strings.Join(itemIds, ",")); err != nil {
 		return err
@@ -139,24 +155,32 @@ func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
 	return i.dictRepo.DeleteItem(itemIds...)
 }
 func (i DictService) UpdateItem(req *UpdateDictItemReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
+
 	l := i.locker.New()
 	if err := l.Lock("dict:item:update:" + cast.ToString(req.DictID) + ":" + cast.ToString(req.ID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	_, err := i.dictRepo.Detail(req.DictID)
 	if err != nil {
 		return err
 	}
+
 	var item model.DictItem
 	if err := copier.Copy(&item, req); err != nil {
 		return err
 	}
 	item.ID = req.ID
+
 	return i.dictRepo.UpdateItem(&item)
 }
 
 func (i DictService) RetrieveItems(dictID any) (int64, []model.DictItem, error) {
+
 	return i.dictRepo.RetrieveItems(dictID)
 }
 
@@ -166,10 +190,11 @@ func (i DictService) DeleteDict(ids ...string) error {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.dictRepo.DeleteDict(ids...)
 }
 
 func (i DictService) GetDictByType(dictType string) ([]model.DictItem, error) {
-	//TODO implement me
-	panic("implement me")
+
+	return nil, errors.New("not implemented")
 }

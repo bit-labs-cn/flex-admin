@@ -4,6 +4,7 @@ import (
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/redis"
+	validatorv10 "github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
@@ -12,22 +13,24 @@ import (
 type DeptService struct {
 	deptRepo repository.DeptRepositoryInterface
 	locker   redis.LockerFactory
+	validate *validatorv10.Validate
 }
 
-func NewDeptService(deptRepo repository.DeptRepositoryInterface, locker redis.LockerFactory) *DeptService {
+func NewDeptService(deptRepo repository.DeptRepositoryInterface, locker redis.LockerFactory, validate *validatorv10.Validate) *DeptService {
 	return &DeptService{
 		deptRepo: deptRepo,
 		locker:   locker,
+		validate: validate,
 	}
 }
 
 type CreateDeptReq struct {
-	Name        string `gorm:"comment:部门名称" json:"name" validate:"required,max=64"`       // 部门名称
-	ParentId    int    `gorm:"comment:父级部门" json:"parentId,string" validate:"omitempty"`  // 父级部门
-	Level       uint   `gorm:"comment:部门层级" json:"level" validate:"omitempty"`            // 部门层级
-	Sort        uint   `gorm:"comment:排序" json:"sort" validate:"omitempty"`               // 排序
-	Status      uint   `gorm:"comment:状态" json:"status" validate:"omitempty,oneof=1 2"`   // 状态(1启用,2禁用)
-	Description string `gorm:"comment:描述" json:"description" binding:"omitempty,max=255"` // 描述
+	Name        string `gorm:"comment:部门名称" json:"name" validate:"required,max=64"`                                    // 部门名称
+	ParentId    int    `gorm:"comment:父级部门" json:"parentId,string" validate:"omitempty"`                               // 父级部门
+	Level       uint   `gorm:"comment:部门层级" json:"level" validate:"omitempty"`                                         // 部门层级
+	Sort        uint   `gorm:"comment:排序" json:"sort" validate:"omitempty"`                                            // 排序
+	Status      uint   `gorm:"comment:状态" json:"status" validate:"omitempty,oneof=1 2"`                                // 状态(1启用,2禁用)
+	Description string `gorm:"comment:描述" json:"description" binding:"omitempty,max=255" validate:"omitempty,max=255"` // 描述
 }
 
 type UpdateDeptReq struct {
@@ -38,6 +41,9 @@ type UpdateDeptReq struct {
 // CreateDept 创建部门
 // 就算 CreateDeptReq 直接使用了 model.Dept 作为了结构体，但是也要单独声明 CreateDeptReq 来接收参数，因为这样可扩展性更高
 func (i DeptService) CreateDept(req *CreateDeptReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("dept:create"); err != nil {
 		return err
@@ -52,6 +58,9 @@ func (i DeptService) CreateDept(req *CreateDeptReq) error {
 }
 
 func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("dept:update:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -65,6 +74,7 @@ func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
 	return i.deptRepo.Update(&dept)
 }
 func (i DeptService) DeleteDept(id uint) error {
+
 	l := i.locker.New()
 	if err := l.Lock("dept:delete:" + cast.ToString(id)); err != nil {
 		return err

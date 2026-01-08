@@ -12,6 +12,7 @@ import (
 	"bit-labs.cn/owl/provider/router"
 	"github.com/asaskevich/EventBus"
 	"github.com/casbin/casbin/v2"
+	validatorv10 "github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
@@ -55,6 +56,7 @@ type RoleService struct {
 	enforcer casbin.IEnforcer
 	ctx      context.Context
 	log      log.Logger
+	validate *validatorv10.Validate
 
 	roleRepo repository.RoleRepositoryInterface
 	menuRepo *router.MenuRepository
@@ -68,6 +70,7 @@ func NewRoleService(
 	enforcer casbin.IEnforcer,
 	bus EventBus.Bus,
 	locker redis.LockerFactory,
+	validate *validatorv10.Validate,
 	gdb *gorm.DB,
 ) *RoleService {
 	return &RoleService{
@@ -76,6 +79,7 @@ func NewRoleService(
 		roleRepo:       roleRepo,
 		eventbus:       bus,
 		locker:         locker,
+		validate:       validate,
 		BaseRepository: db.NewBaseRepository[model.Role](gdb),
 	}
 }
@@ -84,6 +88,9 @@ func (i *RoleService) WithContext(ctx context.Context) *RoleService {
 	return i
 }
 func (i *RoleService) CreateRole(req *CreateRoleReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("role:create"); err != nil {
 		return err
@@ -100,6 +107,9 @@ func (i *RoleService) CreateRole(req *CreateRoleReq) error {
 }
 
 func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("role:update:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -119,6 +129,9 @@ func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
 
 // ChangeStatus 修改角色状态
 func (i *RoleService) ChangeStatus(req *db.ChangeStatus) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("role:status:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -133,21 +146,29 @@ func (i *RoleService) Options() (list []repository.RoleItem, err error) {
 
 // DeleteRole 删除角色
 func (i *RoleService) DeleteRole(id uint) error {
+
 	l := i.locker.New()
 	if err := l.Lock("role:delete:" + cast.ToString(id)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.BaseRepository.Delete(id)
 }
 
 func (i *RoleService) RetrieveRoles(req *RetrieveRoleReq) (count int64, list []model.Role, err error) {
+	if err := i.validate.Struct(req); err != nil {
+		return 0, nil, err
+	}
 	return i.roleRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
 }
 
 func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("role:assign-menus:" + cast.ToString(req.RoleID)); err != nil {
 		return err
@@ -168,6 +189,7 @@ func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
 
 // GetRolesMenuIDs 获取角色的菜单IDs
 func (i *RoleService) GetRolesMenuIDs(ids ...string) (result []string) {
+
 	ds, err := i.roleRepo.GetRolesMenuIDs(ids...)
 	if err != nil {
 		i.log.Error("获取角色菜单IDs失败", err)

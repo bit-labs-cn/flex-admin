@@ -6,6 +6,7 @@ import (
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
+	validatorv10 "github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
@@ -30,15 +31,19 @@ type RetrievePositionReq struct {
 
 type PositionService struct {
 	db.BaseRepository[model.Position]
-	repo   repository.PositionRepositoryInterface
-	locker redis.LockerFactory
+	repo     repository.PositionRepositoryInterface
+	locker   redis.LockerFactory
+	validate *validatorv10.Validate
 }
 
-func NewPositionService(repo repository.PositionRepositoryInterface, tx *gorm.DB, locker redis.LockerFactory) *PositionService {
-	return &PositionService{BaseRepository: db.NewBaseRepository[model.Position](tx), repo: repo, locker: locker}
+func NewPositionService(repo repository.PositionRepositoryInterface, tx *gorm.DB, locker redis.LockerFactory, validate *validatorv10.Validate) *PositionService {
+	return &PositionService{BaseRepository: db.NewBaseRepository[model.Position](tx), repo: repo, locker: locker, validate: validate}
 }
 
 func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("position:create"); err != nil {
 		return err
@@ -51,6 +56,9 @@ func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
 }
 
 func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("position:update:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -67,15 +75,20 @@ func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
 }
 
 func (i *PositionService) DeletePosition(id uint) error {
+
 	l := i.locker.New()
 	if err := l.Lock("position:delete:" + cast.ToString(id)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	return i.BaseRepository.Delete(id)
 }
 
 func (i *PositionService) ChangeStatus(req *db.ChangeStatus) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("position:status:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -85,6 +98,9 @@ func (i *PositionService) ChangeStatus(req *db.ChangeStatus) error {
 }
 
 func (i *PositionService) RetrievePositions(req *RetrievePositionReq) (count int64, list []model.Position, err error) {
+	if err := i.validate.Struct(req); err != nil {
+		return 0, nil, err
+	}
 	return i.repo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) { db.AppendWhereFromStruct(tx, req) })
 }
 

@@ -15,6 +15,7 @@ import (
 	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/provider/socketio"
+	"bit-labs.cn/owl/provider/validator"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 
@@ -47,6 +48,7 @@ func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
 		&permission.GuardProvider{},
 		&db.DBServiceProvider{},
 		&socketio.SocketIOServiceProvider{},
+		&validator.ValidatorServiceProvider{},
 		&jwt.JwtServiceProvider{},
 		&redis.RedisServiceProvider{},
 		&rabbitmq.RabbitMQServiceProvider{},

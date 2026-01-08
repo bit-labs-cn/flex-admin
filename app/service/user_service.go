@@ -16,6 +16,7 @@ import (
 	"bit-labs.cn/owl/utils"
 	"github.com/asaskevich/EventBus"
 	"github.com/casbin/casbin/v2"
+	validatorv10 "github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 )
@@ -25,7 +26,7 @@ var (
 )
 
 type UserBatchFields struct {
-	Username string `json:"username" validate:"required,min=3,max=32"` // 用户名
+	Username string `json:"username" validate:"required,min=2,max=32"` // 用户名
 	NickName string `json:"nickName" validate:"omitempty,max=32"`      // 昵称
 	Email    string `json:"email" validate:"omitempty,email"`          // 邮箱
 	Phone    string `json:"phone" validate:"omitempty,numeric"`        // 手机号
@@ -101,6 +102,7 @@ type UserService struct {
 	eventBus  EventBus.Bus
 	configure *conf.Configure
 	locker    redis.LockerFactory
+	validate  *validatorv10.Validate
 }
 
 func NewUserService(
@@ -113,6 +115,7 @@ func NewUserService(
 	jwtSvc *jwt.JWTService,
 	menuManager *router.MenuRepository,
 	locker redis.LockerFactory,
+	validate *validatorv10.Validate,
 ) *UserService {
 	return &UserService{
 		db:             tx,
@@ -125,11 +128,15 @@ func NewUserService(
 		jwtSvc:         jwtSvc,
 		menuManger:     menuManager,
 		locker:         locker,
+		validate:       validate,
 	}
 }
 
 // Login 用户登录
 func (i *UserService) Login(req *LoginReq) (resp *LoginResp, err error) {
+	if err := i.validate.Struct(req); err != nil {
+		return nil, err
+	}
 
 	user, err := i.GetUserByName(req.Username)
 	if err != nil {
@@ -172,7 +179,6 @@ func (i *UserService) LoginByThirdParty(username, provider string) (resp *LoginR
 
 // GetUserByName 根据用户名查找用户
 func (i *UserService) GetUserByName(name string) (*model.User, error) {
-	var user model.User
 
 	var adminLoginReq LoginReq
 	err := i.configure.GetConfig("app.admin", &adminLoginReq)
@@ -180,7 +186,8 @@ func (i *UserService) GetUserByName(name string) (*model.User, error) {
 		return nil, err
 	}
 
-	// 查找用户，优先从配置里面找
+	// 查找用户，优先从配置里面找admin
+	var user model.User
 	if name == adminLoginReq.Username {
 		user = model.NewSuperUser()
 		user.Password = adminLoginReq.Password
@@ -211,6 +218,9 @@ func (i *UserService) GetUserMenus(userID uint) []*router.Menu {
 
 // AssignRoleToUser 分配角色给用户
 func (i *UserService) AssignRoleToUser(req *AssignRoleToUser) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("user:assign-roles:" + cast.ToString(req.UserID)); err != nil {
 		return err
@@ -232,24 +242,32 @@ func (i *UserService) AssignRoleToUser(req *AssignRoleToUser) error {
 
 // GetUserRoleIDs 获取用户的角色IDs
 func (i *UserService) GetUserRoleIDs(id uint) ([]string, error) {
+
 	user, err := i.userRepo.FindById(id)
 	if err != nil {
 		return nil, err
 	}
+
 	return user.GetRoleIDs(), nil
 }
 
 // ChangeUserPassword 修改用户密码
 func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:change-pwd:" + cast.ToString(req.UserID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	user, err := i.userRepo.FindById(req.UserID)
 	if err != nil {
 		return err
 	}
+
 	err = user.ChangePassword(req.OldPassword, req.NewPassword)
 	if err != nil {
 		return err
@@ -259,31 +277,42 @@ func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
 
 // ResetUserPassword 超管重置用户密码（不校验旧密码）
 func (i *UserService) ResetUserPassword(req *ResetPasswordReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:reset-pwd:" + cast.ToString(req.UserID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	user, err := i.userRepo.FindById(req.UserID)
 	if err != nil {
 		return err
 	}
-	user.Password = utils.BcryptHash(req.NewPassword)
+	user.SetPassword(req.NewPassword)
+
 	return i.userRepo.Save(user)
 }
 
 type ChangeAvatarReq struct {
-	UserID uint   `json:"userId,string"`
-	Avatar string `json:"avatar" binding:"required,url"`
+	UserID uint   `json:"userId,string" validate:"required"`
+	Avatar string `json:"avatar" validate:"required,url"`
 }
 
 // ChangeUserAvatar 修改用户头像
 func (i *UserService) ChangeUserAvatar(req *ChangeAvatarReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:avatar:" + cast.ToString(req.UserID)); err != nil {
 		return err
 	}
 	defer l.Unlock()
+
 	user, err := i.userRepo.FindById(req.UserID)
 	if err != nil {
 		return err
@@ -295,6 +324,10 @@ func (i *UserService) ChangeUserAvatar(req *ChangeAvatarReq) error {
 
 // RetrieveUsers 获取用户列表
 func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int, list []model.User, err error) {
+	if err = i.validate.Struct(req); err != nil {
+		return 0, nil, err
+	}
+
 	c, u, e := i.userRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Preload("Roles")
@@ -305,6 +338,9 @@ func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int, list []mod
 
 // CreateUser 创建用户
 func (i *UserService) CreateUser(req *CreateUserReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("user:create"); err != nil {
 		return err
@@ -325,6 +361,9 @@ func (i *UserService) CreateUser(req *CreateUserReq) error {
 
 // Register 注册用户
 func (i *UserService) Register(req *model.User) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("user:register"); err != nil {
 		return err
@@ -342,6 +381,10 @@ func (i *UserService) Register(req *model.User) error {
 
 // UpdateUser 更新用户
 func (i *UserService) UpdateUser(req *UpdateUserReq) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
+
 	l := i.locker.New()
 	if err := l.Lock("user:update:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -363,6 +406,9 @@ func (i *UserService) UpdateUser(req *UpdateUserReq) error {
 
 // ChangeUserStatus 修改用户状态
 func (i *UserService) ChangeUserStatus(req *db.ChangeStatus) error {
+	if err := i.validate.Struct(req); err != nil {
+		return err
+	}
 	l := i.locker.New()
 	if err := l.Lock("user:status:" + cast.ToString(req.ID)); err != nil {
 		return err
@@ -377,6 +423,7 @@ func (i *UserService) DeleteUser(id uint) error {
 		return err
 	}
 	defer l.Unlock()
+
 	err := i.BaseRepository.Delete(id)
 	return err
 }
