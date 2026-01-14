@@ -18,6 +18,7 @@ import (
 	"bit-labs.cn/owl/provider/validator"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"bit-labs.cn/flex-admin/app/handle/oauth"
 	v1 "bit-labs.cn/flex-admin/app/handle/v1"
@@ -36,9 +37,10 @@ func (i *SubAppAdmin) Name() string {
 }
 
 func (i *SubAppAdmin) Bootstrap() {
-	i.app.Invoke(func(db *gorm.DB) {
-		database.Migrate(db)
-		seeder.InitAllDictData(db)
+	i.app.Invoke(func(gdb *gorm.DB) {
+		migDB := gdb.Session(&gorm.Session{Logger: gdb.Config.Logger.LogMode(logger.Error)})
+		database.Migrate(migDB)
+		seeder.InitAllDictData(migDB)
 		listener.Init(i.app)
 	})
 }
