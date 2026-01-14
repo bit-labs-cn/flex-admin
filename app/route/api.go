@@ -10,8 +10,10 @@ import (
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/router"
+	"bit-labs.cn/owl/provider/router/middleware"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu, positionMenu *router.Menu
@@ -110,7 +112,7 @@ func InitApi(app foundation.Application, appName string) {
 				Icon:          "ep:user",
 			})
 
-			r.Post("/users/login", router.AccessPublic, userHandle.Login).Name("用户登录").Build()
+			r.Use(middleware.RateLimiter(time.Second*1, 2)).Post("/users/login", router.AccessPublic, userHandle.Login).Name("用户登录").Build()
 
 			r.Put("/users/me/password", router.AccessAuthenticated, userHandle.ChangePassword).Name("修改我的密码").Build()
 			r.Get("/users/me/menus", router.AccessAuthenticated, userHandle.GetMyMenus).Name("我的菜单").Build()
