@@ -9,6 +9,7 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
 	github.com/casbin/casbin/v2 v2.103.0
 	github.com/gin-gonic/gin v1.10.1
+	github.com/go-playground/validator/v10 v10.26.0
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/googollee/go-socket.io v1.7.0
 	github.com/jinzhu/copier v0.4.0
@@ -82,7 +83,6 @@ require (
 	github.com/glebarez/sqlite v1.7.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.26.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobuffalo/packd v0.3.0 // indirect
@@ -136,5 +136,3 @@ require (
 	modernc.org/memory v1.5.0 // indirect
 	modernc.org/sqlite v1.20.3 // indirect
 )
-
-replace bit-labs.cn/owl v1.0.0 => ../owl

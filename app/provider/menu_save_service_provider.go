@@ -47,7 +47,7 @@ func (i *MenuSaveServiceProvider) iter(menu *router.Menu, level int) {
 			MenuType: menu.MenuType,
 		})
 	}
-	if menu.Children != nil && len(menu.Children) > 0 {
+	if len(menu.Children) > 0 {
 		for j, v := range menu.Children {
 			v.ID = menu.ID + "," + v.Name
 			i.iter(v, level+1)

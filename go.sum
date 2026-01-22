@@ -1,3 +1,5 @@
+bit-labs.cn/owl v1.0.0 h1:LBfABbHgX7E/y55iV7gFBNHB+0OZ1MNxYvUS+F97qIk=
+bit-labs.cn/owl v1.0.0/go.mod h1:zFwhQn/gqeJUrXUSMrM/sv63gs6NidQ6hsSGUyNiCc8=
 cloud.google.com/go/compute v1.24.0 h1:phWcR2eWzRJaL/kOiJwfFsPs4BaKq1j6vnpZrc1YlVg=
 cloud.google.com/go/compute v1.24.0/go.mod h1:kw1/T+h/+tK2LJK0wiPPx1intgdAM3j/g3hFDlscY40=
 cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGBW5aJ7UnBMY=
