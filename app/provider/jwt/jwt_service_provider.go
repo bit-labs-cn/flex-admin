@@ -11,6 +11,10 @@ type JwtServiceProvider struct {
 	app foundation.Application
 }
 
+func (s *JwtServiceProvider) Description() string {
+	return "JWT 生成与校验"
+}
+
 func (s *JwtServiceProvider) Register() {
 	s.app.Register(func(c *conf.Configure) *JWTService {
 		var opt JWTOptions
@@ -30,7 +34,7 @@ func (s *JwtServiceProvider) Boot() {
 //go:embed jwt.yaml
 var exampleConf string
 
-func (s *JwtServiceProvider) GenerateConf() map[string]string {
+func (s *JwtServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"jwt.yaml": exampleConf,
 	}

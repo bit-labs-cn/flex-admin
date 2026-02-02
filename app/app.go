@@ -9,13 +9,12 @@ import (
 	"bit-labs.cn/flex-admin/app/route"
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/provider/captcha"
 	"bit-labs.cn/owl/provider/db"
 	"bit-labs.cn/owl/provider/permission"
-	"bit-labs.cn/owl/provider/rabbitmq"
 	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/provider/socketio"
-	"bit-labs.cn/owl/provider/validator"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -49,11 +48,10 @@ func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
 	return []foundation.ServiceProvider{
 		&permission.GuardProvider{},
 		&db.DBServiceProvider{},
-		&socketio.SocketIOServiceProvider{},
-		&validator.ValidatorServiceProvider{},
 		&jwt.JwtServiceProvider{},
 		&redis.RedisServiceProvider{},
-		&rabbitmq.RabbitMQServiceProvider{},
+		&socketio.SocketIOServiceProvider{},
+		&captcha.CaptchaServiceProvider{},
 	}
 }
 func (i *SubAppAdmin) Menu() []*router.Menu {

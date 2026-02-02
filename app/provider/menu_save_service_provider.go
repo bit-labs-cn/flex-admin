@@ -14,6 +14,10 @@ type MenuSaveServiceProvider struct {
 	db  *gorm.DB
 }
 
+func (i *MenuSaveServiceProvider) Description() string {
+	return "菜单保存服务提供者，将菜单保存到数据库"
+}
+
 var _ foundation.ServiceProvider = (*MenuSaveServiceProvider)(nil)
 
 func (i *MenuSaveServiceProvider) Register() {
@@ -65,6 +69,6 @@ func (i *MenuSaveServiceProvider) iter(menu *router.Menu, level int) {
 		}
 	}
 }
-func (i *MenuSaveServiceProvider) GenerateConf() map[string]string {
+func (i *MenuSaveServiceProvider) Conf() map[string]string {
 	return nil
 }
