@@ -24,6 +24,12 @@ func (i *Role) TableName() string {
 func (i *Role) SetMenus(menus []Menu) {
 	i.Menus = menus
 }
+func (i *Role) Enable() {
+	i.Status = 1
+}
+func (i *Role) Disable() {
+	i.Status = 0
+}
 
 // RoleMenu 用户和角色的菜单
 type RoleMenu struct {

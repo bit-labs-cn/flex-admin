@@ -105,6 +105,7 @@ func (i *RoleService) CreateRole(req *CreateRoleReq) error {
 		return err
 	}
 
+	role.Enable()
 	return i.roleRepo.Save(&role)
 }
 
