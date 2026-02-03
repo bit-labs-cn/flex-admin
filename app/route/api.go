@@ -1,6 +1,8 @@
 package route
 
 import (
+	"time"
+
 	"bit-labs.cn/flex-admin/app/handle/oauth"
 	v1 "bit-labs.cn/flex-admin/app/handle/v1"
 	middleware2 "bit-labs.cn/flex-admin/app/middleware"
@@ -13,7 +15,6 @@ import (
 	"bit-labs.cn/owl/provider/router/middleware"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 var userMenu, roleMenu, menuMenu, apiMenu, deptMenu, dictMenu, positionMenu *router.Menu
@@ -24,8 +25,10 @@ func InitMenu() []*router.Menu {
 			Path: "/system/rbac",
 			Name: "SystemRbac",
 			Meta: router.Meta{
-				Title: "用户权限",
-				Icon:  "ep:user",
+				Title:      "用户权限",
+				Icon:       "ep:user",
+				ShowParent: true,
+				ShowLink:   true,
 			},
 			MenuType: router.MenuTypeDir,
 			Children: []*router.Menu{
@@ -39,8 +42,10 @@ func InitMenu() []*router.Menu {
 			Path: "/system/logs",
 			Name: "SystemLogs",
 			Meta: router.Meta{
-				Title: "日志管理",
-				Icon:  "ep:monitor",
+				Title:      "日志管理",
+				Icon:       "ep:monitor",
+				ShowParent: true,
+				ShowLink:   true,
 			},
 			MenuType: router.MenuTypeDir,
 			Children: []*router.Menu{
@@ -48,8 +53,10 @@ func InitMenu() []*router.Menu {
 					Path: "/system/login-log/index",
 					Name: "SystemLoginLog",
 					Meta: router.Meta{
-						Title: "登录日志",
-						Icon:  "material-symbols-light:login-outline-rounded",
+						Title:      "登录日志",
+						Icon:       "material-symbols-light:login-outline-rounded",
+						ShowParent: true,
+						ShowLink:   true,
 					},
 					MenuType: router.MenuTypeMenu,
 				},
@@ -57,8 +64,10 @@ func InitMenu() []*router.Menu {
 					Path: "/system/operation-log/index",
 					Name: "SystemMonitorOperationLog",
 					Meta: router.Meta{
-						Title: "操作日志",
-						Icon:  "twemoji:hammer-and-wrench",
+						Title:      "操作日志",
+						Icon:       "twemoji:hammer-and-wrench",
+						ShowParent: true,
+						ShowLink:   true,
 					},
 					MenuType: router.MenuTypeMenu,
 				},
@@ -68,8 +77,10 @@ func InitMenu() []*router.Menu {
 			Path: "/system",
 			Name: "System",
 			Meta: router.Meta{
-				Title: "系统管理",
-				Icon:  "ep:setting",
+				Title:      "系统管理",
+				Icon:       "ep:setting",
+				ShowParent: true,
+				ShowLink:   true,
 			},
 			MenuType: router.MenuTypeDir,
 			Children: []*router.Menu{

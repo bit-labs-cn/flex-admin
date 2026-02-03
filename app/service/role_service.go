@@ -22,7 +22,7 @@ import (
 type CreateRoleReq struct {
 	Name   string `json:"name" validate:"required,min=2,max=32"`          // 角色名称
 	Code   string `json:"code" validate:"required,alphanum,min=2,max=32"` // 角色编码
-	Status int    `json:"status" validate:"required,oneof=1 2"`           // 状态(1启用,2禁用)
+	Status int    `json:"status" validate:"omitempty,oneof=1 2"`          // 状态(1启用,2禁用)
 	Remark string `json:"remark" validate:"omitempty,max=255"`            // 备注
 }
 
