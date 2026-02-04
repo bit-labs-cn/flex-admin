@@ -106,6 +106,7 @@ func InitApi(app foundation.Application, appName string) {
 		positionHandle *v1.PositionHandle,
 		areaHandle *v1.AreaHandle,
 		logHandle *v1.LogHandle,
+		appUpgradeHandle *v1.AppUpgradeHandle,
 		enforcer casbin.IEnforcer,
 		oauthHandle *oauth.Handle,
 		engine *gin.Engine,
@@ -302,6 +303,12 @@ func InitApi(app foundation.Application, appName string) {
 			})
 			r.Post("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").Build()
 			r.Post("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").Build()
+		}
+
+		// app upgrade
+		{
+			r := router.NewRouteInfoBuilder(appName, appUpgradeHandle, gv1, router.MenuOption{})
+			r.Get("/app/upgrade", router.AccessPublic, appUpgradeHandle.Upgrade).Name("获取最新版本").Build()
 		}
 		// oauth
 

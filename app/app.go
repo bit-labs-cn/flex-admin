@@ -74,6 +74,7 @@ func (i *SubAppAdmin) Binds() []any {
 	return []any{
 		oauth.NewOauthHandle,
 		v1.NewApiHandle,
+		v1.NewAppUpgradeHandle,
 		storage.NewFileHandle,
 		v1.NewDeptHandle,
 		v1.NewDictHandle,
@@ -89,6 +90,7 @@ func (i *SubAppAdmin) Binds() []any {
 		service.NewLogService,
 		service.NewUserService,
 		service.NewAreaService,
+		service.NewAppVersionService,
 		repository.NewLogRepository,
 		repository.NewDeptRepository,
 		repository.NewDictRepository,
@@ -96,6 +98,7 @@ func (i *SubAppAdmin) Binds() []any {
 		repository.NewPositionRepository,
 		repository.NewUserRepository,
 		repository.NewAreaRepository,
+		repository.NewAppVersionRepository,
 		service.NewPositionService,
 	}
 }
