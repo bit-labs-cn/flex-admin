@@ -13,6 +13,7 @@ import (
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/provider/router/middleware"
+	"bit-labs.cn/owl/provider/storage"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 )
@@ -98,6 +99,7 @@ func InitApi(app foundation.Application, appName string) {
 		userHandle *v1.UserHandle,
 		roleHandle *v1.RoleHandle,
 		apiHandle *v1.ApiHandle,
+		fileHandle *storage.FileHandle,
 		menuHandle *v1.MenuHandle,
 		dictHandle *v1.DictHandle,
 		deptHandle *v1.DeptHandle,
@@ -114,6 +116,16 @@ func InitApi(app foundation.Application, appName string) {
 
 		gv1 := engine.Group("/api/v1", middleware2.PermissionCheck(enforcer, jwtSvc))
 		gv1.Use(middleware2.OperationLog(logService))
+
+		// file
+		{
+			r := router.NewRouteInfoBuilder(appName, fileHandle, gv1, router.MenuOption{
+				ComponentName: "SystemFile",
+				Path:          "/system/file/index",
+				Icon:          "ep:upload",
+			})
+			r.Post("/files/upload", router.AccessAuthenticated, fileHandle.Upload).Name("上传文件").Build()
+		}
 
 		// user
 		{

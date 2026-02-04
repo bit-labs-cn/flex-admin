@@ -22,23 +22,17 @@ func InitAllDictData(db *gorm.DB) {
 			log.Printf("初始化字典主表数据失败: %v", err)
 			return err
 		}
-		log.Println("字典主表数据初始化完成")
 
-		// 再初始化字典项数据
-		log.Println("开始初始化字典项数据...")
 		if err := initDictItemDataWithTx(tx); err != nil {
 			log.Printf("初始化字典项数据失败: %v", err)
 			return err
 		}
-		log.Println("字典项数据初始化完成")
 
 		return nil
 	})
 
 	if err != nil {
 		log.Printf("字典数据初始化失败: %v", err)
-	} else {
-		log.Println("所有字典数据初始化成功")
 	}
 }
 

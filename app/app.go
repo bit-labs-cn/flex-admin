@@ -15,6 +15,7 @@ import (
 	"bit-labs.cn/owl/provider/redis"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/provider/socketio"
+	"bit-labs.cn/owl/provider/storage"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -38,8 +39,8 @@ func (i *SubAppAdmin) Name() string {
 func (i *SubAppAdmin) Bootstrap() {
 	i.app.Invoke(func(gdb *gorm.DB) {
 		migDB := gdb.Session(&gorm.Session{Logger: gdb.Config.Logger.LogMode(logger.Error)})
-		database.Migrate(migDB)
-		seeder.InitAllDictData(migDB)
+		go database.Migrate(migDB)
+		go seeder.InitAllDictData(migDB)
 		listener.Init(i.app)
 	})
 }
@@ -52,6 +53,7 @@ func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
 		&redis.RedisServiceProvider{},
 		&socketio.SocketIOServiceProvider{},
 		&captcha.CaptchaServiceProvider{},
+		&storage.StorageServiceProvider{},
 	}
 }
 func (i *SubAppAdmin) Menu() []*router.Menu {
@@ -72,6 +74,7 @@ func (i *SubAppAdmin) Binds() []any {
 	return []any{
 		oauth.NewOauthHandle,
 		v1.NewApiHandle,
+		storage.NewFileHandle,
 		v1.NewDeptHandle,
 		v1.NewDictHandle,
 		v1.NewMenuHandle,
