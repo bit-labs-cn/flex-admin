@@ -53,9 +53,9 @@ func (i *RoleRepository) Save(role *model.Role) error {
 	return err
 }
 
-// Retrieve 角色列表
-
+// WithContext 设置上下文
 func (i *RoleRepository) WithContext(ctx context.Context) RoleRepositoryInterface {
+	i.db = i.db.WithContext(ctx)
 	i.ctx = ctx
 	return i
 }

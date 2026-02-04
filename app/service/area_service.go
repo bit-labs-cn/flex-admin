@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
@@ -22,12 +24,12 @@ type RetrieveAllAreaReq struct {
 	NameLike string `json:"name" validate:"omitempty,max=64"`     // 区域名称
 }
 
-func (i *AreaService) RetrieveAll(req *RetrieveAllAreaReq) (list []model.Area, err error) {
+func (i *AreaService) RetrieveAll(ctx context.Context, req *RetrieveAllAreaReq) (list []model.Area, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return nil, err
 	}
 
-	return i.areaRepo.ListAll(func(tx *gorm.DB) {
+	return i.areaRepo.WithContext(ctx).ListAll(func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
 }

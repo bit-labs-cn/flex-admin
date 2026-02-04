@@ -42,7 +42,7 @@ func (i *RoleHandle) Create(ctx *gin.Context) {
 		return
 	}
 
-	err := i.roleService.CreateRole(req)
+	err := i.roleService.CreateRole(ctx.Request.Context(), req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -75,7 +75,7 @@ func (i *RoleHandle) Update(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
-	err := i.roleService.UpdateRole(req)
+	err := i.roleService.UpdateRole(ctx.Request.Context(), req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -85,7 +85,7 @@ func (i *RoleHandle) Update(ctx *gin.Context) {
 
 func (i *RoleHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
-	err := i.roleService.DeleteRole(id)
+	err := i.roleService.DeleteRole(ctx.Request.Context(), id)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -112,7 +112,7 @@ func (i *RoleHandle) Retrieve(ctx *gin.Context) {
 		return
 	}
 
-	count, list, err := i.roleService.RetrieveRoles(&req)
+	count, list, err := i.roleService.RetrieveRoles(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -138,7 +138,7 @@ func (i *RoleHandle) AssignMenusToRole(ctx *gin.Context) {
 		return
 	}
 	req.RoleID = cast.ToUint(ctx.Param("id"))
-	err := i.roleService.WithContext(ctx).AssignMenusToRole(req)
+	err := i.roleService.AssignMenusToRole(ctx.Request.Context(), req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -155,7 +155,7 @@ func (i *RoleHandle) AssignMenusToRole(ctx *gin.Context) {
 // @Router			/api/v1/role/{id}/menus [GET]
 func (i *RoleHandle) GetRoleMenuIDs(ctx *gin.Context) {
 	id := ctx.Param("id")
-	menuIds := i.roleService.WithContext(ctx).GetRolesMenuIDs(id)
+	menuIds := i.roleService.GetRolesMenuIDs(ctx.Request.Context(), id)
 	router.Success(ctx, menuIds)
 
 }
@@ -168,7 +168,7 @@ func (i *RoleHandle) GetRoleMenuIDs(ctx *gin.Context) {
 // @Failure		500	{object}	router.Resp	"服务器内部错误"
 // @Router			/api/v1/role/options [GET]
 func (i *RoleHandle) RoleOptions(ctx *gin.Context) {
-	x, err := i.roleService.Options()
+	x, err := i.roleService.Options(ctx.Request.Context())
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -196,7 +196,7 @@ func (i *RoleHandle) ChangeStatus(ctx *gin.Context) {
 	}
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
-	if err := i.roleService.ChangeStatus(req); err != nil {
+	if err := i.roleService.ChangeStatus(ctx.Request.Context(), req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}

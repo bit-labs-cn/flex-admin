@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
@@ -44,7 +46,7 @@ type CreateLoginLogReq struct {
 	UserAgent string `json:"userAgent" validate:"omitempty,max=255"` // 客户端 UA
 }
 
-func (i *LogService) CreateLoginLog(req *CreateLoginLogReq) error {
+func (i *LogService) CreateLoginLog(ctx context.Context, req *CreateLoginLogReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -55,10 +57,10 @@ func (i *LogService) CreateLoginLog(req *CreateLoginLogReq) error {
 		return err
 	}
 
-	return i.logRepo.SaveLoginLog(&log)
+	return i.logRepo.WithContext(ctx).SaveLoginLog(&log)
 }
 
-func (i *LogService) CreateOperationLog(req *CreateOperationLogReq) error {
+func (i *LogService) CreateOperationLog(ctx context.Context, req *CreateOperationLogReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func (i *LogService) CreateOperationLog(req *CreateOperationLogReq) error {
 		return err
 	}
 
-	return i.logRepo.SaveOperationLog(&log)
+	return i.logRepo.WithContext(ctx).SaveOperationLog(&log)
 }
 
 type RetrieveLoginLogsReq struct {
@@ -80,12 +82,12 @@ type RetrieveLoginLogsReq struct {
 	CreatedAtBetween string `json:"createdAt"` // 创建时间区间查询
 }
 
-func (i *LogService) RetrieveLoginLogs(req *RetrieveLoginLogsReq) (count int64, list []model.LoginLog, err error) {
+func (i *LogService) RetrieveLoginLogs(ctx context.Context, req *RetrieveLoginLogsReq) (count int64, list []model.LoginLog, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
 
-	return i.logRepo.RetrieveLoginLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
+	return i.logRepo.WithContext(ctx).RetrieveLoginLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
 }
@@ -99,11 +101,11 @@ type RetrieveOperationLogsReq struct {
 	CreatedAtBetween string `json:"createdAt"` // 创建时间区间查询
 }
 
-func (i *LogService) RetrieveOperationLogs(req *RetrieveOperationLogsReq) (count int64, list []model.OperationLog, err error) {
+func (i *LogService) RetrieveOperationLogs(ctx context.Context, req *RetrieveOperationLogsReq) (count int64, list []model.OperationLog, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
-	return i.logRepo.RetrieveOperationLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
+	return i.logRepo.WithContext(ctx).RetrieveOperationLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
 }

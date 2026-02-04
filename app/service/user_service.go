@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/spf13/cast"
@@ -133,12 +134,12 @@ func NewUserService(
 }
 
 // Login 用户登录
-func (i *UserService) Login(req *LoginReq) (resp *LoginResp, err error) {
+func (i *UserService) Login(ctx context.Context, req *LoginReq) (resp *LoginResp, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return nil, err
 	}
 
-	user, err := i.GetUserByName(req.Username)
+	user, err := i.GetUserByName(ctx, req.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +152,7 @@ func (i *UserService) Login(req *LoginReq) (resp *LoginResp, err error) {
 	// 非超管才需要获取菜单及权限
 	if !user.IsSuperAdmin {
 		roleIDs := user.GetRoleIDs()
-		menuIDs := i.roleSvc.GetRolesMenuIDs(roleIDs...)
+		menuIDs := i.roleSvc.GetRolesMenuIDs(ctx, roleIDs...)
 		user.Permissions = i.menuManger.GetPermissionsByMenuIDs(menuIDs...)
 	}
 
@@ -163,9 +164,9 @@ func (i *UserService) Login(req *LoginReq) (resp *LoginResp, err error) {
 }
 
 // LoginByThirdParty 第三方用户登录
-func (i *UserService) LoginByThirdParty(username, provider string) (resp *LoginResp, err error) {
+func (i *UserService) LoginByThirdParty(ctx context.Context, username, provider string) (resp *LoginResp, err error) {
 
-	thirdProvider, err := i.userRepo.GetByNameAndThirdProvider(username, provider)
+	thirdProvider, err := i.userRepo.WithContext(ctx).GetByNameAndThirdProvider(username, provider)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +179,7 @@ func (i *UserService) LoginByThirdParty(username, provider string) (resp *LoginR
 }
 
 // GetUserByName 根据用户名查找用户
-func (i *UserService) GetUserByName(name string) (*model.User, error) {
+func (i *UserService) GetUserByName(ctx context.Context, name string) (*model.User, error) {
 
 	var adminLoginReq LoginReq
 	err := i.configure.GetConfig("app.admin", &adminLoginReq)
@@ -193,7 +194,7 @@ func (i *UserService) GetUserByName(name string) (*model.User, error) {
 		user.Password = adminLoginReq.Password
 	} else {
 		// 从数据库查找用户
-		user, err = i.userRepo.GetByName(name)
+		user, err = i.userRepo.WithContext(ctx).GetByName(name)
 		if errors.Is(err, repository.ErrUserNotExists) {
 			return nil, ErrLogin
 		}
@@ -203,21 +204,21 @@ func (i *UserService) GetUserByName(name string) (*model.User, error) {
 }
 
 // GetUserMenus 获取用户菜单
-func (i *UserService) GetUserMenus(userID uint) []*router.Menu {
+func (i *UserService) GetUserMenus(ctx context.Context, userID uint) []*router.Menu {
 
-	user, err := i.userRepo.FindById(userID)
+	user, err := i.userRepo.WithContext(ctx).FindById(userID)
 	if err != nil {
 		return nil
 	}
 
-	menuIDs := i.roleSvc.GetRolesMenuIDs(user.GetRoleIDs()...)
+	menuIDs := i.roleSvc.GetRolesMenuIDs(ctx, user.GetRoleIDs()...)
 
 	menus := i.menuManger.GetMenuByMenuIDs(menuIDs...)
 	return menus
 }
 
 // AssignRoleToUser 分配角色给用户
-func (i *UserService) AssignRoleToUser(req *AssignRoleToUser) error {
+func (i *UserService) AssignRoleToUser(ctx context.Context, req *AssignRoleToUser) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -229,22 +230,22 @@ func (i *UserService) AssignRoleToUser(req *AssignRoleToUser) error {
 
 	roles := db.GetModelsByIDs[model.Role](req.RoleIDs)
 
-	user, err := i.userRepo.FindById(req.UserID)
+	user, err := i.userRepo.WithContext(ctx).FindById(req.UserID)
 	if err != nil {
 		return err
 	}
 
 	user.SetRoles(roles)
-	err = i.userRepo.Save(user)
+	err = i.userRepo.WithContext(ctx).Save(user)
 
 	i.eventBus.Publish(event.AssignRoleToUser, req)
 	return err
 }
 
 // GetUserRoleIDs 获取用户的角色IDs
-func (i *UserService) GetUserRoleIDs(id uint) ([]string, error) {
+func (i *UserService) GetUserRoleIDs(ctx context.Context, id uint) ([]string, error) {
 
-	user, err := i.userRepo.FindById(id)
+	user, err := i.userRepo.WithContext(ctx).FindById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +254,7 @@ func (i *UserService) GetUserRoleIDs(id uint) ([]string, error) {
 }
 
 // ChangeUserPassword 修改用户密码
-func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
+func (i *UserService) ChangeUserPassword(ctx context.Context, req *ChangePasswordReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -264,7 +265,7 @@ func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
 	}
 	defer l.Unlock()
 
-	user, err := i.userRepo.FindById(req.UserID)
+	user, err := i.userRepo.WithContext(ctx).FindById(req.UserID)
 	if err != nil {
 		return err
 	}
@@ -273,11 +274,11 @@ func (i *UserService) ChangeUserPassword(req *ChangePasswordReq) error {
 	if err != nil {
 		return err
 	}
-	return i.userRepo.Save(user)
+	return i.userRepo.WithContext(ctx).Save(user)
 }
 
 // ResetUserPassword 超管重置用户密码（不校验旧密码）
-func (i *UserService) ResetUserPassword(req *ResetPasswordReq) error {
+func (i *UserService) ResetUserPassword(ctx context.Context, req *ResetPasswordReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -288,13 +289,13 @@ func (i *UserService) ResetUserPassword(req *ResetPasswordReq) error {
 	}
 	defer l.Unlock()
 
-	user, err := i.userRepo.FindById(req.UserID)
+	user, err := i.userRepo.WithContext(ctx).FindById(req.UserID)
 	if err != nil {
 		return err
 	}
 	user.SetPassword(req.NewPassword)
 
-	return i.userRepo.Save(user)
+	return i.userRepo.WithContext(ctx).Save(user)
 }
 
 type ChangeAvatarReq struct {
@@ -303,7 +304,7 @@ type ChangeAvatarReq struct {
 }
 
 // ChangeUserAvatar 修改用户头像
-func (i *UserService) ChangeUserAvatar(req *ChangeAvatarReq) error {
+func (i *UserService) ChangeUserAvatar(ctx context.Context, req *ChangeAvatarReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -314,22 +315,22 @@ func (i *UserService) ChangeUserAvatar(req *ChangeAvatarReq) error {
 	}
 	defer l.Unlock()
 
-	user, err := i.userRepo.FindById(req.UserID)
+	user, err := i.userRepo.WithContext(ctx).FindById(req.UserID)
 	if err != nil {
 		return err
 	}
 	user.SetAvatar(req.Avatar)
 
-	return i.userRepo.Save(user)
+	return i.userRepo.WithContext(ctx).Save(user)
 }
 
 // RetrieveUsers 获取用户列表
-func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int, list []model.User, err error) {
+func (i *UserService) RetrieveUsers(ctx context.Context, req *RetrieveUserReq) (count int, list []model.User, err error) {
 	if err = i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
 
-	c, u, e := i.userRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+	c, u, e := i.userRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Preload("Roles")
 	})
@@ -338,7 +339,7 @@ func (i *UserService) RetrieveUsers(req *RetrieveUserReq) (count int, list []mod
 }
 
 // CreateUser 创建用户
-func (i *UserService) CreateUser(req *CreateUserReq) error {
+func (i *UserService) CreateUser(ctx context.Context, req *CreateUserReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -356,14 +357,14 @@ func (i *UserService) CreateUser(req *CreateUserReq) error {
 	}
 	user.SetPassword(req.Password)
 
-	if err = i.userRepo.Save(&user); err != nil {
+	if err = i.userRepo.WithContext(ctx).Save(&user); err != nil {
 		return err
 	}
 	return err
 }
 
 // Register 注册用户
-func (i *UserService) Register(req *model.User) error {
+func (i *UserService) Register(ctx context.Context, req *model.User) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -380,11 +381,11 @@ func (i *UserService) Register(req *model.User) error {
 		return err
 	}
 
-	return i.userRepo.Save(&user)
+	return i.userRepo.WithContext(ctx).Save(&user)
 }
 
 // UpdateUser 更新用户
-func (i *UserService) UpdateUser(req *UpdateUserReq) error {
+func (i *UserService) UpdateUser(ctx context.Context, req *UpdateUserReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -395,7 +396,7 @@ func (i *UserService) UpdateUser(req *UpdateUserReq) error {
 	}
 	defer l.Unlock()
 
-	user, err := i.userRepo.FindById(req.ID)
+	user, err := i.userRepo.WithContext(ctx).FindById(req.ID)
 	if err != nil {
 		return err
 	}
@@ -405,11 +406,11 @@ func (i *UserService) UpdateUser(req *UpdateUserReq) error {
 		return err
 	}
 
-	return i.userRepo.Save(user)
+	return i.userRepo.WithContext(ctx).Save(user)
 }
 
 // ChangeUserStatus 修改用户状态
-func (i *UserService) ChangeUserStatus(req *db.ChangeStatus) error {
+func (i *UserService) ChangeUserStatus(ctx context.Context, req *db.ChangeStatus) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -423,7 +424,7 @@ func (i *UserService) ChangeUserStatus(req *db.ChangeStatus) error {
 	return i.BaseRepository.ChangeStatus(req)
 }
 
-func (i *UserService) DeleteUser(id uint) error {
+func (i *UserService) DeleteUser(ctx context.Context, id uint) error {
 	l := i.locker.New()
 	if err := l.Lock("user:delete:" + cast.ToString(id)); err != nil {
 		return err

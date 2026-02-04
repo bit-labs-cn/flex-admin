@@ -42,7 +42,7 @@ func (i AppUpgradeHandle) Upgrade(ctx *gin.Context) {
 		apkType = &t
 	}
 
-	latest, err := i.appVersionSvc.Latest(apkType)
+	latest, err := i.appVersionSvc.Latest(ctx.Request.Context(), apkType)
 	if err != nil {
 		if errors.Is(err, service.ErrNoAvailableAppVersion) {
 			router.SuccessWithMsg(ctx, err.Error(), nil)

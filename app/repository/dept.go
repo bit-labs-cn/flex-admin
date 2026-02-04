@@ -1,11 +1,11 @@
 package repository
 
 import (
-	"bit-labs.cn/flex-admin/app/model"
-	"bit-labs.cn/owl/contract"
-
+	"context"
 	"errors"
 
+	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/provider/db"
 	"gorm.io/gorm"
 )
@@ -15,12 +15,14 @@ var ErrDeptNotExists = errors.New("部门不存在")
 
 type DeptRepositoryInterface interface {
 	contract.Repository[model.Dept]
+	contract.WithContext[DeptRepositoryInterface]
 }
 
 var _ DeptRepositoryInterface = (*DeptRepository)(nil)
 
 type DeptRepository struct {
-	db *gorm.DB
+	db  *gorm.DB
+	ctx context.Context
 	db.BaseRepository[model.Dept]
 }
 
@@ -30,7 +32,13 @@ func NewDeptRepository(d *gorm.DB) DeptRepositoryInterface {
 		BaseRepository: db.NewBaseRepository[model.Dept](d),
 	}
 }
-func (i DeptRepository) Create(data *model.Dept) error {
+
+func (i *DeptRepository) WithContext(ctx context.Context) DeptRepositoryInterface {
+	i.db = i.db.WithContext(ctx)
+	i.ctx = ctx
+	return i
+}
+func (i *DeptRepository) Create(data *model.Dept) error {
 	_, exists := i.BaseRepository.Unique(data.ID, func(db *gorm.DB) {
 		db.Where("parent_id = ? and name = ?", data.ParentId, data.Name)
 	})
@@ -43,14 +51,14 @@ func (i DeptRepository) Create(data *model.Dept) error {
 	return err
 }
 
-func (i DeptRepository) Update(data *model.Dept) error {
+func (i *DeptRepository) Update(data *model.Dept) error {
 	return i.Create(data)
 }
 
-func (i DeptRepository) Delete(id uint) error {
+func (i *DeptRepository) Delete(id uint) error {
 	return i.BaseRepository.Delete(id)
 }
 
-func (i DeptRepository) Detail(id any) (*model.Dept, error) {
+func (i *DeptRepository) Detail(id any) (*model.Dept, error) {
 	return i.BaseRepository.Detail(id)
 }

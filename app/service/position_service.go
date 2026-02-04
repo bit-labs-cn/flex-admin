@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
@@ -45,7 +47,7 @@ func NewPositionService(
 	return &PositionService{BaseRepository: db.NewBaseRepository[model.Position](tx), repo: repo, locker: locker, validate: validate}
 }
 
-func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
+func (i *PositionService) CreatePosition(ctx context.Context, req *CreatePositionReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -62,10 +64,10 @@ func (i *PositionService) CreatePosition(req *CreatePositionReq) error {
 		return err
 	}
 
-	return i.repo.Save(&m)
+	return i.repo.WithContext(ctx).Save(&m)
 }
 
-func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
+func (i *PositionService) UpdatePosition(ctx context.Context, req *UpdatePositionReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -76,7 +78,7 @@ func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
 	}
 	defer l.Unlock()
 
-	m, err := i.repo.Detail(req.ID)
+	m, err := i.repo.WithContext(ctx).Detail(req.ID)
 	if err != nil {
 		return err
 	}
@@ -84,10 +86,10 @@ func (i *PositionService) UpdatePosition(req *UpdatePositionReq) error {
 	if err = copier.Copy(m, req); err != nil {
 		return err
 	}
-	return i.repo.Save(m)
+	return i.repo.WithContext(ctx).Save(m)
 }
 
-func (i *PositionService) DeletePosition(id uint) error {
+func (i *PositionService) DeletePosition(ctx context.Context, id uint) error {
 
 	l := i.locker.New()
 	if err := l.Lock("position:delete:" + cast.ToString(id)); err != nil {
@@ -98,7 +100,7 @@ func (i *PositionService) DeletePosition(id uint) error {
 	return i.BaseRepository.Delete(id)
 }
 
-func (i *PositionService) ChangeStatus(req *db.ChangeStatus) error {
+func (i *PositionService) ChangeStatus(ctx context.Context, req *db.ChangeStatus) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -112,16 +114,16 @@ func (i *PositionService) ChangeStatus(req *db.ChangeStatus) error {
 	return i.BaseRepository.ChangeStatus(req)
 }
 
-func (i *PositionService) RetrievePositions(req *RetrievePositionReq) (count int64, list []model.Position, err error) {
+func (i *PositionService) RetrievePositions(ctx context.Context, req *RetrievePositionReq) (count int64, list []model.Position, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
 
-	return i.repo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+	return i.repo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
 }
 
-func (i *PositionService) Options() (list []repository.PositionItem, err error) {
-	return i.repo.Options()
+func (i *PositionService) Options(ctx context.Context) (list []repository.PositionItem, err error) {
+	return i.repo.WithContext(ctx).Options()
 }

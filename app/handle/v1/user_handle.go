@@ -51,7 +51,7 @@ func (i *UserHandle) Create(ctx *gin.Context) {
 		return
 	}
 
-	err := i.userSvc.CreateUser(req)
+	err := i.userSvc.CreateUser(ctx.Request.Context(), req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -70,7 +70,7 @@ func (i *UserHandle) Create(ctx *gin.Context) {
 func (i *UserHandle) Delete(ctx *gin.Context) {
 
 	id := cast.ToUint(ctx.Param("id"))
-	err := i.userSvc.DeleteUser(id)
+	err := i.userSvc.DeleteUser(ctx.Request.Context(), id)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -103,7 +103,7 @@ func (i *UserHandle) Update(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
-	err := i.userSvc.UpdateUser(req)
+	err := i.userSvc.UpdateUser(ctx.Request.Context(), req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -131,7 +131,7 @@ func (i *UserHandle) ChangeStatus(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
-	err := i.userSvc.ChangeStatus(req)
+	err := i.userSvc.ChangeUserStatus(ctx.Request.Context(), req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -155,7 +155,7 @@ func (i *UserHandle) Retrieve(ctx *gin.Context) {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
-	count, list, err := i.userSvc.RetrieveUsers(&req)
+	count, list, err := i.userSvc.RetrieveUsers(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -181,7 +181,7 @@ func (i *UserHandle) AssignRolesToUser(ctx *gin.Context) {
 		return
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
-	if err := i.userSvc.AssignRoleToUser(req); err != nil {
+	if err := i.userSvc.AssignRoleToUser(ctx.Request.Context(), req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -199,7 +199,7 @@ func (i *UserHandle) AssignRolesToUser(ctx *gin.Context) {
 func (i *UserHandle) GetRoleIdsByUserId(ctx *gin.Context) {
 
 	userID := cast.ToUint(ctx.Param("id"))
-	ids, err := i.userSvc.GetUserRoleIDs(userID)
+	ids, err := i.userSvc.GetUserRoleIDs(ctx.Request.Context(), userID)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -225,7 +225,7 @@ func (i *UserHandle) AssignMenuToUser(ctx *gin.Context) {
 		return
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
-	if err := i.userSvc.AssignRoleToUser(req); err != nil {
+	if err := i.userSvc.AssignRoleToUser(ctx.Request.Context(), req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -245,7 +245,7 @@ func (i *UserHandle) GetMyMenus(ctx *gin.Context) {
 		router.Success(ctx, i.menuRepo.GetMenuWithoutBtn())
 		return
 	}
-	menus := i.userSvc.GetUserMenus(user.(*model.User).ID)
+	menus := i.userSvc.GetUserMenus(ctx.Request.Context(), user.(*model.User).ID)
 	router.Success(ctx, menus)
 }
 
@@ -268,7 +268,7 @@ func (i *UserHandle) ChangePassword(ctx *gin.Context) {
 	uVal, _ := ctx.Get("user")
 	user := uVal.(*model.User)
 	req.UserID = user.ID
-	if err := i.userSvc.ChangeUserPassword(&req); err != nil {
+	if err := i.userSvc.ChangeUserPassword(ctx.Request.Context(), &req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -294,7 +294,7 @@ func (i *UserHandle) ResetPassword(ctx *gin.Context) {
 	}
 
 	req.UserID = cast.ToUint(ctx.Param("id"))
-	if err := i.userSvc.ResetUserPassword(&req); err != nil {
+	if err := i.userSvc.ResetUserPassword(ctx.Request.Context(), &req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -318,7 +318,7 @@ func (i *UserHandle) Login(ctx *gin.Context) {
 		return
 	}
 
-	login, err := i.userSvc.Login(&req)
+	login, err := i.userSvc.Login(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -328,7 +328,7 @@ func (i *UserHandle) Login(ctx *gin.Context) {
 	if login.User != nil && login.User.IsSuperAdmin {
 		uType = "super_admin"
 	}
-	_ = i.logSvc.CreateLoginLog(&service.CreateLoginLogReq{
+	_ = i.logSvc.CreateLoginLog(ctx.Request.Context(), &service.CreateLoginLogReq{
 		UserId:    int(login.User.ID),
 		UserName:  login.User.Username,
 		UserType:  uType,

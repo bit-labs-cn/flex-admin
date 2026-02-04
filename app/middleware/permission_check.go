@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -42,6 +43,12 @@ func PermissionCheck(enforcer casbin.IEnforcer, jwtService *jwt.JWTService) gin.
 					}
 
 					ctx.Set("user", user)
+					reqCtx := ctx.Request.Context()
+					reqCtx = context.WithValue(reqCtx, "user_id", user.ID)
+					reqCtx = context.WithValue(reqCtx, "username", user.Username)
+					reqCtx = context.WithValue(reqCtx, "nickname", user.Nickname)
+					reqCtx = context.WithValue(reqCtx, "roles", user.Roles)
+					ctx.Request = ctx.Request.WithContext(reqCtx)
 					if user.IsSuperAdmin {
 						ctx.Next()
 						return

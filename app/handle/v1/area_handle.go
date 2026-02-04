@@ -36,7 +36,7 @@ func (i AreaHandle) RetrieveAll(ctx *gin.Context) {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
-	list, err := i.areaSvc.RetrieveAll(&req)
+	list, err := i.areaSvc.RetrieveAll(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return

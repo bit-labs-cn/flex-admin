@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"bit-labs.cn/flex-admin/app/model"
+	"bit-labs.cn/owl/contract"
 	"bit-labs.cn/owl/provider/db"
 	"gorm.io/gorm"
 )
@@ -19,6 +20,7 @@ type UserRepositoryInterface interface {
 	Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.User, err error)
 	GetByName(name string) (model.User, error)
 	GetByNameAndThirdProvider(name string, provider string) (model.User, error)
+	contract.WithContext[UserRepositoryInterface]
 }
 
 var _ UserRepositoryInterface = (*UserRepository)(nil)
@@ -34,6 +36,12 @@ func NewUserRepository(tx *gorm.DB) UserRepositoryInterface {
 		db:             tx,
 		BaseRepository: db.NewBaseRepository[model.User](tx),
 	}
+}
+
+func (i *UserRepository) WithContext(ctx context.Context) UserRepositoryInterface {
+	i.db = i.db.WithContext(ctx)
+	i.ctx = ctx
+	return i
 }
 
 func (i *UserRepository) Save(user *model.User) error {

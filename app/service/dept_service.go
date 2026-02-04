@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"bit-labs.cn/flex-admin/app/model"
 	"bit-labs.cn/flex-admin/app/repository"
 	"bit-labs.cn/owl/provider/db"
@@ -48,7 +50,7 @@ type RetrieveDeptReq struct {
 
 // CreateDept 创建部门
 // 就算 CreateDeptReq 直接使用了 model.Dept 作为了结构体，但是也要单独声明 CreateDeptReq 来接收参数，因为这样可扩展性更高
-func (i DeptService) CreateDept(req *CreateDeptReq) error {
+func (i DeptService) CreateDept(ctx context.Context, req *CreateDeptReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -64,10 +66,10 @@ func (i DeptService) CreateDept(req *CreateDeptReq) error {
 	if err != nil {
 		return err
 	}
-	return i.deptRepo.Create(&dept)
+	return i.deptRepo.WithContext(ctx).Create(&dept)
 }
 
-func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
+func (i DeptService) UpdateDept(ctx context.Context, req *UpdateDeptReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -83,9 +85,9 @@ func (i DeptService) UpdateDept(req *UpdateDeptReq) error {
 	if err != nil {
 		return err
 	}
-	return i.deptRepo.Update(&dept)
+	return i.deptRepo.WithContext(ctx).Update(&dept)
 }
-func (i DeptService) DeleteDept(id uint) error {
+func (i DeptService) DeleteDept(ctx context.Context, id uint) error {
 
 	l := i.locker.New()
 	if err := l.Lock("dept:delete:" + cast.ToString(id)); err != nil {
@@ -93,15 +95,15 @@ func (i DeptService) DeleteDept(id uint) error {
 	}
 	defer l.Unlock()
 
-	return i.deptRepo.Delete(id)
+	return i.deptRepo.WithContext(ctx).Delete(id)
 }
 
-func (i DeptService) RetrieveDepts(req *RetrieveDeptReq) (count int64, list []model.Dept, err error) {
+func (i DeptService) RetrieveDepts(ctx context.Context, req *RetrieveDeptReq) (count int64, list []model.Dept, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
 
-	return i.deptRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+	return i.deptRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Order("sort asc").Order("id asc")
 	})

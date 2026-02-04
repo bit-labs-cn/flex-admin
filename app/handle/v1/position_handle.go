@@ -34,7 +34,7 @@ func (i *PositionHandle) Create(ctx *gin.Context) {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
-	if err := i.svc.CreatePosition(&req); err != nil {
+	if err := i.svc.CreatePosition(ctx.Request.Context(), &req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -59,7 +59,7 @@ func (i *PositionHandle) Update(ctx *gin.Context) {
 		return
 	}
 	req.ID = cast.ToUint(ctx.Param("id"))
-	if err := i.svc.UpdatePosition(&req); err != nil {
+	if err := i.svc.UpdatePosition(ctx.Request.Context(), &req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -76,7 +76,7 @@ func (i *PositionHandle) Update(ctx *gin.Context) {
 // @Router			/api/v1/position/{id} [DELETE]
 func (i *PositionHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
-	if err := i.svc.DeletePosition(id); err != nil {
+	if err := i.svc.DeletePosition(ctx.Request.Context(), id); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -100,7 +100,7 @@ func (i *PositionHandle) Retrieve(ctx *gin.Context) {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
-	count, list, err := i.svc.RetrievePositions(&req)
+	count, list, err := i.svc.RetrievePositions(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -126,7 +126,7 @@ func (i *PositionHandle) ChangeStatus(ctx *gin.Context) {
 		return
 	}
 	req.ID = cast.ToUint(ctx.Param("id"))
-	if err := i.svc.ChangeStatus(&req); err != nil {
+	if err := i.svc.ChangeStatus(ctx.Request.Context(), &req); err != nil {
 		router.InternalError(ctx, err)
 		return
 	}
@@ -141,7 +141,7 @@ func (i *PositionHandle) ChangeStatus(ctx *gin.Context) {
 // @Failure		500	{object}	router.Resp	"服务器内部错误"
 // @Router			/api/v1/position-options [GET]
 func (i *PositionHandle) Options(ctx *gin.Context) {
-	list, err := i.svc.Options()
+	list, err := i.svc.Options(ctx.Request.Context())
 	if err != nil {
 		router.InternalError(ctx, err)
 		return

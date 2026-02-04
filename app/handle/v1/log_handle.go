@@ -35,7 +35,7 @@ func (i *LogHandle) LoginLogs(ctx *gin.Context) {
 		router.BadRequest(ctx, err.Error())
 		return
 	}
-	count, list, err := i.logSvc.RetrieveLoginLogs(&req)
+	count, list, err := i.logSvc.RetrieveLoginLogs(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -58,7 +58,7 @@ func (i *LogHandle) OperationLogs(ctx *gin.Context) {
 		router.BadRequest(ctx, err.Error())
 		return
 	}
-	count, list, err := i.logSvc.RetrieveOperationLogs(&req)
+	count, list, err := i.logSvc.RetrieveOperationLogs(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return

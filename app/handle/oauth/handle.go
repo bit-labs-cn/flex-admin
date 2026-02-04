@@ -145,13 +145,13 @@ func (i *Handle) Callback(c *gin.Context) {
 	}
 
 	code := c.Query("code")
-	token, err := conf.Exchange(c, code)
+	token, err := conf.Exchange(c.Request.Context(), code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: "Token exchange failed", Data: err.Error()})
 		return
 	}
 
-	client := conf.Client(c, token)
+	client := conf.Client(c.Request.Context(), token)
 
 	// 获取用户信息
 	var userInfoURL string
@@ -190,7 +190,7 @@ func (i *Handle) Callback(c *gin.Context) {
 		},
 		Password: "",
 	}
-	err = i.userSvc.CreateUser(createUser)
+	err = i.userSvc.CreateUser(c.Request.Context(), createUser)
 
 	if err != nil && !errors.Is(err, repository.ErrUserExists) {
 		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: err.Error()})
@@ -234,7 +234,7 @@ func (i *Handle) Callback(c *gin.Context) {
     </html>
     `
 
-	generateToken, err := i.userSvc.LoginByThirdParty(createUser.Username, provider)
+	generateToken, err := i.userSvc.LoginByThirdParty(c.Request.Context(), createUser.Username, provider)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, router.Resp{Success: false, Msg: err.Error()})
 		return

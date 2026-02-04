@@ -38,7 +38,7 @@ func (i DeptHandle) Create(ctx *gin.Context) {
 		return
 	}
 
-	err := i.deptSvc.CreateDept(&req)
+	err := i.deptSvc.CreateDept(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -64,7 +64,7 @@ func (i DeptHandle) Update(ctx *gin.Context) {
 		return
 	}
 
-	err := i.deptSvc.UpdateDept(&req)
+	err := i.deptSvc.UpdateDept(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -82,7 +82,7 @@ func (i DeptHandle) Update(ctx *gin.Context) {
 // @Router			/api/v1/dept/{id} [DELETE]
 func (i DeptHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
-	err := i.deptSvc.DeleteDept(id)
+	err := i.deptSvc.DeleteDept(ctx.Request.Context(), id)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -103,7 +103,7 @@ func (i DeptHandle) Retrieve(ctx *gin.Context) {
 		router.BadRequest(ctx, "参数绑定失败")
 		return
 	}
-	_, list, err := i.deptSvc.RetrieveDepts(&req)
+	_, list, err := i.deptSvc.RetrieveDepts(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return

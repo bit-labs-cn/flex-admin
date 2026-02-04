@@ -88,7 +88,7 @@ func (i *RoleService) WithContext(ctx context.Context) *RoleService {
 	i.ctx = ctx
 	return i
 }
-func (i *RoleService) CreateRole(req *CreateRoleReq) error {
+func (i *RoleService) CreateRole(ctx context.Context, req *CreateRoleReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -106,10 +106,10 @@ func (i *RoleService) CreateRole(req *CreateRoleReq) error {
 	}
 
 	role.Enable()
-	return i.roleRepo.Save(&role)
+	return i.roleRepo.WithContext(ctx).Save(&role)
 }
 
-func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
+func (i *RoleService) UpdateRole(ctx context.Context, req *UpdateRoleReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
 	}
 	defer l.Unlock()
 
-	role, err := i.roleRepo.Detail(req.ID)
+	role, err := i.roleRepo.WithContext(ctx).Detail(req.ID)
 	if err != nil {
 		return err
 	}
@@ -130,11 +130,11 @@ func (i *RoleService) UpdateRole(req *UpdateRoleReq) error {
 		return err
 	}
 
-	return i.roleRepo.Save(role)
+	return i.roleRepo.WithContext(ctx).Save(role)
 }
 
 // ChangeStatus 修改角色状态
-func (i *RoleService) ChangeStatus(req *db.ChangeStatus) error {
+func (i *RoleService) ChangeStatus(ctx context.Context, req *db.ChangeStatus) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -148,12 +148,12 @@ func (i *RoleService) ChangeStatus(req *db.ChangeStatus) error {
 	return i.BaseRepository.ChangeStatus(req)
 }
 
-func (i *RoleService) Options() (list []repository.RoleItem, err error) {
-	return i.roleRepo.Options()
+func (i *RoleService) Options(ctx context.Context) (list []repository.RoleItem, err error) {
+	return i.roleRepo.WithContext(ctx).Options()
 }
 
 // DeleteRole 删除角色
-func (i *RoleService) DeleteRole(id uint) error {
+func (i *RoleService) DeleteRole(ctx context.Context, id uint) error {
 
 	l := i.locker.New()
 	if err := l.Lock("role:delete:" + cast.ToString(id)); err != nil {
@@ -164,17 +164,17 @@ func (i *RoleService) DeleteRole(id uint) error {
 	return i.BaseRepository.Delete(id)
 }
 
-func (i *RoleService) RetrieveRoles(req *RetrieveRoleReq) (count int64, list []model.Role, err error) {
+func (i *RoleService) RetrieveRoles(ctx context.Context, req *RetrieveRoleReq) (count int64, list []model.Role, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
 
-	return i.roleRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+	return i.roleRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 	})
 }
 
-func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
+func (i *RoleService) AssignMenusToRole(ctx context.Context, req *AssignMenuToRole) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -185,14 +185,14 @@ func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
 	}
 	defer l.Unlock()
 
-	role, err := i.roleRepo.Detail(req.RoleID)
+	role, err := i.roleRepo.WithContext(ctx).Detail(req.RoleID)
 	if err != nil {
 		return err
 	}
 
 	role.SetMenus(db.GetModelsByIDs[model.Menu](req.MenuIDs))
 
-	err = i.roleRepo.Save(role)
+	err = i.roleRepo.WithContext(ctx).Save(role)
 
 	i.eventbus.Publish(event.AssignMenuToRole, req)
 
@@ -200,9 +200,9 @@ func (i *RoleService) AssignMenusToRole(req *AssignMenuToRole) error {
 }
 
 // GetRolesMenuIDs 获取角色的菜单IDs
-func (i *RoleService) GetRolesMenuIDs(ids ...string) (result []string) {
+func (i *RoleService) GetRolesMenuIDs(ctx context.Context, ids ...string) (result []string) {
 
-	ds, err := i.roleRepo.GetRolesMenuIDs(ids...)
+	ds, err := i.roleRepo.WithContext(ctx).GetRolesMenuIDs(ids...)
 	if err != nil {
 		i.log.Error("获取角色菜单IDs失败", err)
 		return nil

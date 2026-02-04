@@ -41,7 +41,7 @@ func (i *DictHandle) Create(ctx *gin.Context) {
 		return
 	}
 
-	err := i.dictSvc.CreateDict(&req)
+	err := i.dictSvc.CreateDict(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -60,7 +60,7 @@ func (i *DictHandle) Create(ctx *gin.Context) {
 func (i *DictHandle) Delete(ctx *gin.Context) {
 
 	id := ctx.Param("id")
-	err := i.dictSvc.DeleteDict(id)
+	err := i.dictSvc.DeleteDict(ctx.Request.Context(), id)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -92,7 +92,7 @@ func (i *DictHandle) Update(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 
-	err := i.dictSvc.UpdateDict(&req)
+	err := i.dictSvc.UpdateDict(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -119,7 +119,7 @@ func (i *DictHandle) Retrieve(ctx *gin.Context) {
 		return
 	}
 
-	_, list, err := i.dictSvc.RetrieveDicts(&req)
+	_, list, err := i.dictSvc.RetrieveDicts(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -145,7 +145,7 @@ func (i *DictHandle) CreateItem(ctx *gin.Context) {
 		return
 	}
 	req.DictID = cast.ToUint(ctx.Param("id"))
-	err := i.dictSvc.CreateItem(&req)
+	err := i.dictSvc.CreateItem(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -173,7 +173,7 @@ func (i *DictHandle) UpdateItem(ctx *gin.Context) {
 	}
 	req.DictID = cast.ToUint(ctx.Param("id"))
 	req.ID = cast.ToUint(ctx.Param("itemID"))
-	err := i.dictSvc.UpdateItem(&req)
+	err := i.dictSvc.UpdateItem(ctx.Request.Context(), &req)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -191,7 +191,7 @@ func (i *DictHandle) UpdateItem(ctx *gin.Context) {
 // @Router			/api/v1/dict/{id}/item [GET]
 func (i *DictHandle) RetrieveItems(ctx *gin.Context) {
 	dictID := ctx.Param("id")
-	_, list, err := i.dictSvc.RetrieveItems(dictID)
+	_, list, err := i.dictSvc.RetrieveItems(ctx.Request.Context(), dictID)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -209,7 +209,7 @@ func (i *DictHandle) RetrieveItems(ctx *gin.Context) {
 // @Router			/api/v1/dict/types/{type}/items [GET]
 func (i *DictHandle) GetItemsByType(ctx *gin.Context) {
 	dictType := ctx.Param("type")
-	list, err := i.dictSvc.GetDictByType(dictType)
+	list, err := i.dictSvc.GetDictByType(ctx.Request.Context(), dictType)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return
@@ -229,7 +229,7 @@ func (i *DictHandle) GetItemsByType(ctx *gin.Context) {
 func (i *DictHandle) DeleteItem(ctx *gin.Context) {
 	dictID := ctx.Param("id")
 	itemID := ctx.Param("itemID")
-	err := i.dictSvc.DeleteItems(dictID, itemID)
+	err := i.dictSvc.DeleteItems(ctx.Request.Context(), dictID, itemID)
 	if err != nil {
 		router.InternalError(ctx, err)
 		return

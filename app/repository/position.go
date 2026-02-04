@@ -30,6 +30,7 @@ func NewPositionRepository(d *gorm.DB) PositionRepositoryInterface {
 }
 
 func (i *PositionRepository) WithContext(ctx context.Context) PositionRepositoryInterface {
+	i.db = i.db.WithContext(ctx)
 	i.ctx = ctx
 	return i
 }

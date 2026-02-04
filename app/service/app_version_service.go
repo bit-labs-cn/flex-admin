@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"bit-labs.cn/flex-admin/app/model"
@@ -17,8 +18,8 @@ func NewAppVersionService(repo repository.AppVersionRepositoryInterface) *AppVer
 	return &AppVersionService{repo: repo}
 }
 
-func (i *AppVersionService) Latest(apkType *int32) (*model.AppVersion, error) {
-	v, err := i.repo.Latest(apkType)
+func (i *AppVersionService) Latest(ctx context.Context, apkType *int32) (*model.AppVersion, error) {
+	v, err := i.repo.WithContext(ctx).Latest(apkType)
 	if errors.Is(err, repository.ErrAppVersionNotFound) {
 		return nil, ErrNoAvailableAppVersion
 	}

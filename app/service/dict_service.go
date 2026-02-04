@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"strings"
 
 	"bit-labs.cn/flex-admin/app/model"
@@ -40,7 +41,7 @@ func NewDictService(dictRepo repository.DictRepositoryInterface, locker redis.Lo
 		validate: validate,
 	}
 }
-func (i DictService) CreateDict(req *CreateDictReq) error {
+func (i DictService) CreateDict(ctx context.Context, req *CreateDictReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -57,10 +58,10 @@ func (i DictService) CreateDict(req *CreateDictReq) error {
 		return err
 	}
 
-	return i.dictRepo.Save(dict)
+	return i.dictRepo.WithContext(ctx).Save(dict)
 }
 
-func (i DictService) UpdateDict(req *UpdateDictReq) error {
+func (i DictService) UpdateDict(ctx context.Context, req *UpdateDictReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -71,7 +72,7 @@ func (i DictService) UpdateDict(req *UpdateDictReq) error {
 	}
 	defer l.Unlock()
 
-	dict, err := i.dictRepo.Detail(req.ID)
+	dict, err := i.dictRepo.WithContext(ctx).Detail(req.ID)
 	if err != nil {
 		return err
 	}
@@ -81,7 +82,7 @@ func (i DictService) UpdateDict(req *UpdateDictReq) error {
 		return err
 	}
 
-	return i.dictRepo.Save(dict)
+	return i.dictRepo.WithContext(ctx).Save(dict)
 }
 
 type RetrieveDictReq struct {
@@ -91,11 +92,11 @@ type RetrieveDictReq struct {
 	Type     string `json:"type" binding:"omitempty,max=32" validate:"omitempty,max=32"` // 字典类型
 }
 
-func (i DictService) RetrieveDicts(req *RetrieveDictReq) (count int64, list []model.Dict, err error) {
+func (i DictService) RetrieveDicts(ctx context.Context, req *RetrieveDictReq) (count int64, list []model.Dict, err error) {
 	if err := i.validate.Struct(req); err != nil {
 		return 0, nil, err
 	}
-	return i.dictRepo.Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
+	return i.dictRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Order("sort asc")
 	})
@@ -124,7 +125,7 @@ type UpdateDictItemReq struct {
 	DictID   uint   `json:"dictID,string" validate:"required"`                // 字典ID
 }
 
-func (i DictService) CreateItem(req *CreateDictItemReq) error {
+func (i DictService) CreateItem(ctx context.Context, req *CreateDictItemReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -135,7 +136,7 @@ func (i DictService) CreateItem(req *CreateDictItemReq) error {
 	}
 	defer l.Unlock()
 
-	_, err := i.dictRepo.Detail(req.DictID)
+	_, err := i.dictRepo.WithContext(ctx).Detail(req.DictID)
 	if err != nil {
 		return err
 	}
@@ -144,10 +145,10 @@ func (i DictService) CreateItem(req *CreateDictItemReq) error {
 	if err := copier.Copy(&item, req); err != nil {
 		return err
 	}
-	return i.dictRepo.CreateItem(&item)
+	return i.dictRepo.WithContext(ctx).CreateItem(&item)
 }
 
-func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
+func (i DictService) DeleteItems(ctx context.Context, dictID any, itemIds ...string) error {
 
 	l := i.locker.New()
 	if err := l.Lock("dict:item:delete:" + cast.ToString(dictID) + ":" + strings.Join(itemIds, ",")); err != nil {
@@ -155,14 +156,14 @@ func (i DictService) DeleteItems(dictID any, itemIds ...string) error {
 	}
 	defer l.Unlock()
 
-	_, err := i.dictRepo.Detail(dictID)
+	_, err := i.dictRepo.WithContext(ctx).Detail(dictID)
 	if err != nil {
 		return err
 	}
 
-	return i.dictRepo.DeleteItem(itemIds...)
+	return i.dictRepo.WithContext(ctx).DeleteItem(itemIds...)
 }
-func (i DictService) UpdateItem(req *UpdateDictItemReq) error {
+func (i DictService) UpdateItem(ctx context.Context, req *UpdateDictItemReq) error {
 	if err := i.validate.Struct(req); err != nil {
 		return err
 	}
@@ -173,7 +174,7 @@ func (i DictService) UpdateItem(req *UpdateDictItemReq) error {
 	}
 	defer l.Unlock()
 
-	_, err := i.dictRepo.Detail(req.DictID)
+	_, err := i.dictRepo.WithContext(ctx).Detail(req.DictID)
 	if err != nil {
 		return err
 	}
@@ -183,31 +184,31 @@ func (i DictService) UpdateItem(req *UpdateDictItemReq) error {
 		return err
 	}
 
-	return i.dictRepo.UpdateItem(&item)
+	return i.dictRepo.WithContext(ctx).UpdateItem(&item)
 }
 
-func (i DictService) RetrieveItems(dictID any) (int64, []model.DictItem, error) {
+func (i DictService) RetrieveItems(ctx context.Context, dictID any) (int64, []model.DictItem, error) {
 
-	return i.dictRepo.RetrieveItems(dictID)
+	return i.dictRepo.WithContext(ctx).RetrieveItems(dictID)
 }
 
-func (i DictService) DeleteDict(ids ...string) error {
+func (i DictService) DeleteDict(ctx context.Context, ids ...string) error {
 	l := i.locker.New()
 	if err := l.Lock("dict:delete:" + strings.Join(ids, ",")); err != nil {
 		return err
 	}
 	defer l.Unlock()
 
-	return i.dictRepo.DeleteDict(ids...)
+	return i.dictRepo.WithContext(ctx).DeleteDict(ids...)
 }
 
-func (i DictService) GetDictByType(dictType string) ([]model.DictItem, error) {
+func (i DictService) GetDictByType(ctx context.Context, dictType string) ([]model.DictItem, error) {
 
-	if _, err := i.dictRepo.DetailByType(dictType); err != nil {
+	if _, err := i.dictRepo.WithContext(ctx).DetailByType(dictType); err != nil {
 		return nil, err
 	}
 
-	_, list, err := i.dictRepo.RetrieveItemsByType(dictType)
+	_, list, err := i.dictRepo.WithContext(ctx).RetrieveItemsByType(dictType)
 	if err != nil {
 		return nil, err
 	}
