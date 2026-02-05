@@ -136,7 +136,7 @@ func InitApi(app foundation.Application, appName string) {
 				Icon:          "ep:user",
 			})
 
-			r.Use(middleware.RateLimiter(time.Second*1, 2)).Post("/users/login", router.AccessPublic, userHandle.Login).Name("用户登录").Build()
+			r.Use(middleware.RateLimiter(time.Second*1, 2)).Post("/users/login", router.AccessPublic, userHandle.Login).Name("用户登录").WithoutOperateLog().Build()
 
 			r.Put("/users/me/password", router.AccessAuthenticated, userHandle.ChangePassword).Name("修改我的密码").Build()
 			r.Get("/users/me/menus", router.AccessAuthenticated, userHandle.GetMyMenus).Name("我的菜单").Build()
@@ -301,8 +301,8 @@ func InitApi(app foundation.Application, appName string) {
 				Path:          "/system/monitor/index",
 				Icon:          "ep:monitor",
 			})
-			r.Post("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").Build()
-			r.Post("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").Build()
+			r.Post("/monitor/login-logs", router.AccessAuthorized, logHandle.LoginLogs).Name("登录日志").WithoutOperateLog().Build()
+			r.Post("/monitor/operation-logs", router.AccessAuthorized, logHandle.OperationLogs).Name("操作日志").WithoutOperateLog().Build()
 		}
 
 		// app upgrade
@@ -314,8 +314,8 @@ func InitApi(app foundation.Application, appName string) {
 
 		{
 			r := router.NewRouteInfoBuilder(appName, oauthHandle, gv1, router.MenuOption{})
-			r.Get("/oauth/:provider/login", router.AccessPublic, oauthHandle.Login).Name("第三方登录").Build()
-			r.Get("/oauth/:provider/callback", router.AccessPublic, oauthHandle.Callback).Name("第三方登录回调").Build()
+			r.Get("/oauth/:provider/login", router.AccessPublic, oauthHandle.Login).Name("第三方登录").WithoutOperateLog().Build()
+			r.Get("/oauth/:provider/callback", router.AccessPublic, oauthHandle.Callback).Name("第三方登录回调").WithoutOperateLog().Build()
 		}
 	})
 	owl.PanicIf(err)
