@@ -52,6 +52,9 @@ func OperationLog(logSvc *service.LogService) gin.HandlerFunc {
 
 		for _, r := range router.GetAllRoutes() {
 			if r.Path == path && r.Method == c.Request.Method {
+				if !r.ShouldOperateLog() {
+					return
+				}
 				apiName = r.Name
 				break
 			}

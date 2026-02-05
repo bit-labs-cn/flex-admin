@@ -125,7 +125,7 @@ func InitApi(app foundation.Application, appName string) {
 				Path:          "/system/file/index",
 				Icon:          "ep:upload",
 			})
-			r.Post("/files/upload", router.AccessAuthenticated, fileHandle.Upload).Name("上传文件").Build()
+			r.Post("/files/upload", router.AccessAuthenticated, fileHandle.Upload).Name("上传文件").WithoutOperateLog().Build()
 		}
 
 		// user
