@@ -48,6 +48,7 @@ func (i *SubAppAdmin) Bootstrap() {
 func (i *SubAppAdmin) ServiceProviders() []foundation.ServiceProvider {
 	return []foundation.ServiceProvider{
 		&permission.GuardProvider{},
+		&router.RouterServiceProvider{},
 		&db.DBServiceProvider{},
 		&jwt.JwtServiceProvider{},
 		&redis.RedisServiceProvider{},
