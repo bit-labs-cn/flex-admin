@@ -53,7 +53,7 @@ func (i *UserHandle) Create(ctx *gin.Context) {
 
 	err := i.userSvc.CreateUser(ctx.Request.Context(), req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -72,7 +72,7 @@ func (i *UserHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.userSvc.DeleteUser(ctx.Request.Context(), id)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -105,7 +105,7 @@ func (i *UserHandle) Update(ctx *gin.Context) {
 
 	err := i.userSvc.UpdateUser(ctx.Request.Context(), req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -133,7 +133,7 @@ func (i *UserHandle) ChangeStatus(ctx *gin.Context) {
 
 	err := i.userSvc.ChangeUserStatus(ctx.Request.Context(), req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -157,7 +157,7 @@ func (i *UserHandle) Retrieve(ctx *gin.Context) {
 	}
 	count, list, err := i.userSvc.RetrieveUsers(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.PageSuccess(ctx, count, req.Page, req.PageSize, list)
@@ -182,7 +182,7 @@ func (i *UserHandle) AssignRolesToUser(ctx *gin.Context) {
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
 	if err := i.userSvc.AssignRoleToUser(ctx.Request.Context(), req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -201,7 +201,7 @@ func (i *UserHandle) GetRoleIdsByUserId(ctx *gin.Context) {
 	userID := cast.ToUint(ctx.Param("id"))
 	ids, err := i.userSvc.GetUserRoleIDs(ctx.Request.Context(), userID)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, ids)
@@ -226,7 +226,7 @@ func (i *UserHandle) AssignMenuToUser(ctx *gin.Context) {
 	}
 	req.UserID = cast.ToUint(ctx.Param("id"))
 	if err := i.userSvc.AssignRoleToUser(ctx.Request.Context(), req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -269,7 +269,7 @@ func (i *UserHandle) ChangePassword(ctx *gin.Context) {
 	user := uVal.(*model.User)
 	req.UserID = user.ID
 	if err := i.userSvc.ChangeUserPassword(ctx.Request.Context(), &req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -295,7 +295,7 @@ func (i *UserHandle) ResetPassword(ctx *gin.Context) {
 
 	req.UserID = cast.ToUint(ctx.Param("id"))
 	if err := i.userSvc.ResetUserPassword(ctx.Request.Context(), &req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -320,7 +320,7 @@ func (i *UserHandle) Login(ctx *gin.Context) {
 
 	login, err := i.userSvc.Login(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	// 记录登录日志

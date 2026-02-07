@@ -44,7 +44,7 @@ func (i *RoleHandle) Create(ctx *gin.Context) {
 
 	err := i.roleService.CreateRole(ctx.Request.Context(), req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -77,7 +77,7 @@ func (i *RoleHandle) Update(ctx *gin.Context) {
 
 	err := i.roleService.UpdateRole(ctx.Request.Context(), req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -87,7 +87,7 @@ func (i *RoleHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.roleService.DeleteRole(ctx.Request.Context(), id)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -114,7 +114,7 @@ func (i *RoleHandle) Retrieve(ctx *gin.Context) {
 
 	count, list, err := i.roleService.RetrieveRoles(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.PageSuccess(ctx, int(count), req.Page, req.PageSize, list)
@@ -140,7 +140,7 @@ func (i *RoleHandle) AssignMenusToRole(ctx *gin.Context) {
 	req.RoleID = cast.ToUint(ctx.Param("id"))
 	err := i.roleService.AssignMenusToRole(ctx.Request.Context(), req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -170,7 +170,7 @@ func (i *RoleHandle) GetRoleMenuIDs(ctx *gin.Context) {
 func (i *RoleHandle) RoleOptions(ctx *gin.Context) {
 	x, err := i.roleService.Options(ctx.Request.Context())
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, x)
@@ -197,7 +197,7 @@ func (i *RoleHandle) ChangeStatus(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	req.ID = id
 	if err := i.roleService.ChangeStatus(ctx.Request.Context(), req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)

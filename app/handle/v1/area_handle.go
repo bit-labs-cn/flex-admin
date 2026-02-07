@@ -38,7 +38,7 @@ func (i AreaHandle) RetrieveAll(ctx *gin.Context) {
 	}
 	list, err := i.areaSvc.RetrieveAll(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, list)

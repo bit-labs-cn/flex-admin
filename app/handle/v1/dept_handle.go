@@ -40,7 +40,7 @@ func (i DeptHandle) Create(ctx *gin.Context) {
 
 	err := i.deptSvc.CreateDept(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -66,7 +66,7 @@ func (i DeptHandle) Update(ctx *gin.Context) {
 
 	err := i.deptSvc.UpdateDept(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -84,7 +84,7 @@ func (i DeptHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	err := i.deptSvc.DeleteDept(ctx.Request.Context(), id)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -105,7 +105,7 @@ func (i DeptHandle) Retrieve(ctx *gin.Context) {
 	}
 	_, list, err := i.deptSvc.RetrieveDepts(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, list)

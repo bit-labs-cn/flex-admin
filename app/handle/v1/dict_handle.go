@@ -43,7 +43,7 @@ func (i *DictHandle) Create(ctx *gin.Context) {
 
 	err := i.dictSvc.CreateDict(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -62,7 +62,7 @@ func (i *DictHandle) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := i.dictSvc.DeleteDict(ctx.Request.Context(), id)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -94,7 +94,7 @@ func (i *DictHandle) Update(ctx *gin.Context) {
 
 	err := i.dictSvc.UpdateDict(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -121,7 +121,7 @@ func (i *DictHandle) Retrieve(ctx *gin.Context) {
 
 	_, list, err := i.dictSvc.RetrieveDicts(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, list)
@@ -147,7 +147,7 @@ func (i *DictHandle) CreateItem(ctx *gin.Context) {
 	req.DictID = cast.ToUint(ctx.Param("id"))
 	err := i.dictSvc.CreateItem(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -175,7 +175,7 @@ func (i *DictHandle) UpdateItem(ctx *gin.Context) {
 	req.ID = cast.ToUint(ctx.Param("itemID"))
 	err := i.dictSvc.UpdateItem(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -193,7 +193,7 @@ func (i *DictHandle) RetrieveItems(ctx *gin.Context) {
 	dictID := ctx.Param("id")
 	_, list, err := i.dictSvc.RetrieveItems(ctx.Request.Context(), dictID)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, list)
@@ -211,7 +211,7 @@ func (i *DictHandle) GetItemsByType(ctx *gin.Context) {
 	dictType := ctx.Param("type")
 	list, err := i.dictSvc.GetDictByType(ctx.Request.Context(), dictType)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, list)
@@ -231,7 +231,7 @@ func (i *DictHandle) DeleteItem(ctx *gin.Context) {
 	itemID := ctx.Param("itemID")
 	err := i.dictSvc.DeleteItems(ctx.Request.Context(), dictID, itemID)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)

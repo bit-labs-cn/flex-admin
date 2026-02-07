@@ -48,7 +48,7 @@ func (i AppUpgradeHandle) Upgrade(ctx *gin.Context) {
 			router.SuccessWithMsg(ctx, err.Error(), nil)
 			return
 		}
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, latest)

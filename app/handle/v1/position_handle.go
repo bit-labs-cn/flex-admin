@@ -35,7 +35,7 @@ func (i *PositionHandle) Create(ctx *gin.Context) {
 		return
 	}
 	if err := i.svc.CreatePosition(ctx.Request.Context(), &req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -60,7 +60,7 @@ func (i *PositionHandle) Update(ctx *gin.Context) {
 	}
 	req.ID = cast.ToUint(ctx.Param("id"))
 	if err := i.svc.UpdatePosition(ctx.Request.Context(), &req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -77,7 +77,7 @@ func (i *PositionHandle) Update(ctx *gin.Context) {
 func (i *PositionHandle) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	if err := i.svc.DeletePosition(ctx.Request.Context(), id); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -102,7 +102,7 @@ func (i *PositionHandle) Retrieve(ctx *gin.Context) {
 	}
 	count, list, err := i.svc.RetrievePositions(ctx.Request.Context(), &req)
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.PageSuccess(ctx, int(count), req.Page, req.PageSize, list)
@@ -127,7 +127,7 @@ func (i *PositionHandle) ChangeStatus(ctx *gin.Context) {
 	}
 	req.ID = cast.ToUint(ctx.Param("id"))
 	if err := i.svc.ChangeStatus(ctx.Request.Context(), &req); err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, nil)
@@ -143,7 +143,7 @@ func (i *PositionHandle) ChangeStatus(ctx *gin.Context) {
 func (i *PositionHandle) Options(ctx *gin.Context) {
 	list, err := i.svc.Options(ctx.Request.Context())
 	if err != nil {
-		router.InternalError(ctx, err)
+		router.Fail(ctx, err)
 		return
 	}
 	router.Success(ctx, list)
