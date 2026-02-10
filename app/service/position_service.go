@@ -121,6 +121,7 @@ func (i *PositionService) RetrievePositions(ctx context.Context, req *RetrievePo
 
 	return i.repo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
+		tx.Order("created_at desc")
 	})
 }
 

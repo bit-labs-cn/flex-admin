@@ -98,7 +98,7 @@ func (i DictService) RetrieveDicts(ctx context.Context, req *RetrieveDictReq) (c
 	}
 	return i.dictRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
-		tx.Order("sort asc")
+		tx.Order("created_at desc")
 	})
 }
 

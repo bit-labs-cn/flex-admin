@@ -70,6 +70,10 @@ func (i *RoleRepository) Detail(id any) (*model.Role, error) {
 	return &role, err
 }
 
+func (i *RoleRepository) Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.Role, err error) {
+	return i.BaseRepository.Retrieve(page, pageSize, fn)
+}
+
 // Unique 唯一性校验
 func (i *RoleRepository) Unique(id uint, name string, code string) (*model.Role, bool) {
 	return i.BaseRepository.Unique(id, func(db *gorm.DB) {

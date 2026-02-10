@@ -89,6 +89,7 @@ func (i *LogService) RetrieveLoginLogs(ctx context.Context, req *RetrieveLoginLo
 
 	return i.logRepo.WithContext(ctx).RetrieveLoginLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
+		tx.Order("created_at desc")
 	})
 }
 
@@ -107,5 +108,6 @@ func (i *LogService) RetrieveOperationLogs(ctx context.Context, req *RetrieveOpe
 	}
 	return i.logRepo.WithContext(ctx).RetrieveOperationLogs(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
+		tx.Order("created_at desc")
 	})
 }

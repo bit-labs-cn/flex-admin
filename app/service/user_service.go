@@ -333,6 +333,7 @@ func (i *UserService) RetrieveUsers(ctx context.Context, req *RetrieveUserReq) (
 	c, u, e := i.userRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
 		tx.Preload("Roles")
+		tx.Order("created_at desc")
 	})
 
 	return cast.ToInt(c), u, e

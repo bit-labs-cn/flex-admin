@@ -62,3 +62,7 @@ func (i *DeptRepository) Delete(id uint) error {
 func (i *DeptRepository) Detail(id any) (*model.Dept, error) {
 	return i.BaseRepository.Detail(id)
 }
+
+func (i *DeptRepository) Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []model.Dept, err error) {
+	return i.BaseRepository.Retrieve(page, pageSize, fn)
+}

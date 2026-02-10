@@ -98,7 +98,7 @@ func (i *DictRepository) RetrieveItems(dictID any) (count int64, list []model.Di
 	if err := tx.Count(&count).Error; err != nil {
 		return 0, nil, err
 	}
-	if err := tx.Order("sort asc").Find(&list).Error; err != nil {
+	if err := tx.Order("created_at desc").Find(&list).Error; err != nil {
 		return 0, nil, err
 	}
 	return count, list, nil
@@ -109,7 +109,7 @@ func (i *DictRepository) RetrieveItemsByType(dictType string) (count int64, list
 	if err := tx.Count(&count).Error; err != nil {
 		return 0, nil, err
 	}
-	if err := tx.Order("sort asc").Find(&list).Error; err != nil {
+	if err := tx.Order("created_at desc").Find(&list).Error; err != nil {
 		return 0, nil, err
 	}
 	return count, list, nil

@@ -61,6 +61,6 @@ func (i *AreaRepository) ListAll(fn func(db *gorm.DB)) (list []model.Area, err e
 	if fn != nil {
 		fn(newDB)
 	}
-	err = newDB.Order("area_id asc").Find(&list).Error
+	err = newDB.Order("created_at desc").Find(&list).Error
 	return
 }

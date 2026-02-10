@@ -46,8 +46,8 @@ type AssignRoleToUser struct {
 
 type RetrieveRoleReq struct {
 	router.PageReq
-	NameLike string `json:"nameLike" validate:"omitempty,max=32"`      // 名称模糊搜索
-	Code     string `json:"code" validate:"omitempty,alphanum,max=32"` // 角色编码
+	NameLike string `json:"name" validate:"omitempty,max=32"`          // 名称模糊搜索
+	CodeLike string `json:"code" validate:"omitempty,alphanum,max=32"` // 角色编码
 	Status   uint8  `json:"status" validate:"omitempty,oneof=1 2"`     // 状态(1启用,2禁用)
 }
 
@@ -171,6 +171,7 @@ func (i *RoleService) RetrieveRoles(ctx context.Context, req *RetrieveRoleReq) (
 
 	return i.roleRepo.WithContext(ctx).Retrieve(req.Page, req.PageSize, func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
+		tx.Order("created_at desc")
 	})
 }
 

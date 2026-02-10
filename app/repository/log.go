@@ -62,7 +62,7 @@ func (i *LogRepository) RetrieveLoginLogs(page, pageSize int, fn func(tx *gorm.D
 	if err != nil {
 		return
 	}
-	err = tx.Scopes(db.Paginate(page, pageSize)).Order("id DESC").Find(&list).Error
+	err = tx.Scopes(db.Paginate(page, pageSize)).Order("created_at desc").Find(&list).Error
 	return
 }
 
@@ -75,6 +75,6 @@ func (i *LogRepository) RetrieveOperationLogs(page, pageSize int, fn func(tx *go
 	if err != nil {
 		return
 	}
-	err = tx.Scopes(db.Paginate(page, pageSize)).Order("id DESC").Find(&list).Error
+	err = tx.Scopes(db.Paginate(page, pageSize)).Order("created_at desc").Find(&list).Error
 	return
 }
