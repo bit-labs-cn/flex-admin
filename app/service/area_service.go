@@ -31,6 +31,5 @@ func (i *AreaService) RetrieveAll(ctx context.Context, req *RetrieveAllAreaReq) 
 
 	return i.areaRepo.WithContext(ctx).ListAll(func(tx *gorm.DB) {
 		db.AppendWhereFromStruct(tx, req)
-		tx.Order("created_at desc")
 	})
 }
