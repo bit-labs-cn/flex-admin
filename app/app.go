@@ -64,6 +64,7 @@ func (i *SubAppAdmin) Menu() []*router.Menu {
 func (i *SubAppAdmin) Commands() []*cobra.Command {
 	return []*cobra.Command{
 		cmd.Version,
+		cmd.GenPwd,
 	}
 }
 

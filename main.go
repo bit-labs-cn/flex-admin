@@ -9,5 +9,5 @@ func main() {
 	var subApps = []owl.SubApp{
 		&admin.SubAppAdmin{},
 	}
-	owl.NewApp(subApps...).Run()
+	owl.NewApp(subApps...).WebShell()
 }
