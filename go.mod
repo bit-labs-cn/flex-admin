@@ -1,8 +1,8 @@
 module bit-labs.cn/flex-admin
 
-go 1.24.0
+go 1.26.0
 
-toolchain go1.24.5
+replace bit-labs.cn/owl v1.0.0 => ../owl
 
 require (
 	bit-labs.cn/owl v1.0.0
@@ -159,5 +159,3 @@ require (
 	modernc.org/memory v1.5.0 // indirect
 	modernc.org/sqlite v1.20.3 // indirect
 )
-
-replace bit-labs.cn/owl => ./owl

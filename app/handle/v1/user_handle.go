@@ -249,6 +249,24 @@ func (i *UserHandle) GetMyMenus(ctx *gin.Context) {
 	router.Success(ctx, menus)
 }
 
+// @Summary		获取当前用户权限
+// @Description	返回当前登录用户的权限标识列表
+// @Tags			用户管理
+// @Produce		json
+// @Success		200	{object}	router.Resp{Data=[]string}	"操作成功"
+// @Router			/api/v1/users/me/permissions [GET]
+func (i *UserHandle) GetMyPermissions(ctx *gin.Context) {
+	user, _ := ctx.Get("user")
+	u := user.(*model.User)
+
+	permissions, err := i.userSvc.GetMyPermissions(ctx.Request.Context(), u.ID, u.IsSuperAdmin)
+	if err != nil {
+		router.Fail(ctx, err)
+		return
+	}
+	router.Success(ctx, permissions)
+}
+
 // @Summary		修改我的密码
 // @Description	用户自行修改密码
 // @Tags			用户管理

@@ -140,6 +140,7 @@ func InitApi(app foundation.Application, appName string) {
 
 			r.Put("/users/me/password", router.AccessAuthenticated, userHandle.ChangePassword).Name("修改我的密码").Build()
 			r.Get("/users/me/menus", router.AccessAuthenticated, userHandle.GetMyMenus).Name("我的菜单").Build()
+			r.Get("/users/me/permissions", router.AccessAuthenticated, userHandle.GetMyPermissions).Name("我的权限").Build()
 			r.Get("/users/me", router.AccessAuthenticated, userHandle.Me).Name("我的信息").Build()
 
 			r.Post("/users", router.AccessAuthorized, userHandle.Create).Name("创建用户").Build()

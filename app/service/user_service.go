@@ -149,13 +149,6 @@ func (i *UserService) Login(ctx context.Context, req *LoginReq) (resp *LoginResp
 		return nil, ErrLogin
 	}
 
-	// 非超管才需要获取菜单及权限
-	if !user.IsSuperAdmin {
-		roleIDs := user.GetRoleIDs()
-		menuIDs := i.roleSvc.GetRolesMenuIDs(ctx, roleIDs...)
-		user.Permissions = i.menuManger.GetPermissionsByMenuIDs(menuIDs...)
-	}
-
 	token, err := i.jwtSvc.GenerateToken(user)
 	return &LoginResp{
 		User:        user,
@@ -201,6 +194,22 @@ func (i *UserService) GetUserByName(ctx context.Context, name string) (*model.Us
 	}
 
 	return &user, nil
+}
+
+// GetMyPermissions 获取当前用户的权限标识列表
+func (i *UserService) GetMyPermissions(ctx context.Context, userID uint, isSuperAdmin bool) ([]string, error) {
+	if isSuperAdmin {
+		return []string{"*:*:*"}, nil
+	}
+
+	user, err := i.userRepo.WithContext(ctx).FindById(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	roleIDs := user.GetRoleIDs()
+	menuIDs := i.roleSvc.GetRolesMenuIDs(ctx, roleIDs...)
+	return i.menuManger.GetPermissionsByMenuIDs(menuIDs...), nil
 }
 
 // GetUserMenus 获取用户菜单
